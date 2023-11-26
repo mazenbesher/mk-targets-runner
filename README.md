@@ -2,6 +2,8 @@
 
 Run targets from Makefiles and [justfiles](https://github.com/casey/just) in VSCode.
 
+![](demo.mp4)
+
 ## Expected files patters
 
 For makefiles:
