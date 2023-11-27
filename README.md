@@ -28,4 +28,4 @@ For justfiles:
   - [ ] excluded files
   - [ ] matching patterns and regexes
   - [ ] run-commands (now they are `make -f <file> <target>` and `just -f <file> <target>`)
-- [ ] Generator for targets collector `detectTargets`
+- [ ] Generator `getTargetsInFile`

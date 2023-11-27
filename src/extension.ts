@@ -15,20 +15,29 @@ enum Runner {
 const EXCLUDE_DIRS = ["node_modules", ".git"];
 
 // patterns for each runner files
-type RunnerPattern = {
+const FILE_PATTERNS: {
   [key in Runner]: string[];
-};
-const FILE_PATTERNS: RunnerPattern = {
+} = {
   [Runner.Make]: ["Makefile", "*.mk"],
   [Runner.Just]: ["justfile", "*.just"],
 };
 
+// run command for each runner
+// supported placeholders are the string properties of the class Target
+const RUN_COMMANDS: {
+  [key in Runner]: string;
+} = {
+  [Runner.Make]: "<runner> -f <fsPath> <name>",
+  [Runner.Just]: "<runner> -f <fsPath> <name>",
+};
+
 // class to hold target information
 class Target {
-  cmd: string;
+  name: string;
   dir: string;
   uri: vscode.Uri;
   runner: Runner;
+  fsPath: string;
 
   constructor({
     cmd,
@@ -41,14 +50,26 @@ class Target {
     uri: vscode.Uri;
     runner: Runner;
   }) {
-    this.cmd = cmd;
+    this.name = cmd;
     this.dir = dir;
     this.uri = uri;
     this.runner = runner;
+    this.fsPath = uri.fsPath;
   }
 
-  get label(): string {
-    return this.cmd;
+  get cmd(): string {
+    let command = RUN_COMMANDS[this.runner];
+    // replace placeholders with values
+    for (const property in this) {
+      if (this.hasOwnProperty(property)) {
+        const placeholder = `<${property}>`;
+        const value = this[property];
+        if (typeof value === "string") {
+          command = command.replace(placeholder, value);
+        }
+      }
+    }
+    return command;
   }
 
   run(): void {
@@ -58,16 +79,7 @@ class Target {
       terminal = vscode.window.createTerminal();
     }
     terminal.show();
-    if (this.runner === Runner.Just) {
-      terminal.sendText(`just -f ${this.uri.fsPath} ${this.cmd}`);
-      return;
-    }
-    if (this.runner === Runner.Make) {
-      terminal.sendText(`make -f ${this.uri.fsPath} ${this.cmd}`);
-      return;
-    }
-
-    throw new Error("Unknown runner");
+    terminal.sendText(this.cmd);
   }
 }
 
@@ -103,7 +115,11 @@ class QuickPickItemTarget implements vscode.QuickPickItem {
   constructor(public target: Target) {}
 
   get label(): string {
-    return `Run Target: ${this.target.label}`;
+    return `Run Target: ${this.target.name}`;
+  }
+
+  get description(): string {
+    return getRelativeUri(this.target.uri);
   }
 }
 
