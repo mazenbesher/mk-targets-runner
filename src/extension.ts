@@ -3,35 +3,50 @@
 import * as vscode from "vscode";
 
 // globals
+// TODO: make configurable
 const EXCLUDE_DIRS = ["node_modules", ".git"];
 
 // class to hold target information
 class Target {
-  label: string;
   cmd: string;
   dir: string;
   uri: vscode.Uri;
 
   constructor({
-    label,
     cmd,
     dir,
     uri,
   }: {
-    label: string;
     cmd: string;
     dir: string;
     uri: vscode.Uri;
   }) {
-    this.label = label;
     this.cmd = cmd;
     this.dir = dir;
     this.uri = uri;
   }
 
-  // setter for the label
-  setLabel(label: string) {
-    this.label = label;
+  // getter for relative path label (relative path to workspace root or "root" if it is the workspace root)
+  get relativePathLabel(): string {
+    let relativePathLabel = vscode.workspace.asRelativePath(this.uri);
+
+    const workspaceRoot = vscode.workspace.getWorkspaceFolder(this.uri);
+    if (!workspaceRoot) {
+      // doesn't match any workspace folder
+      return relativePathLabel;
+    }
+
+    // if relative path is the same as the workspace root
+    if (relativePathLabel === workspaceRoot.name + "/") {
+      relativePathLabel = "root";
+    }
+
+    return relativePathLabel;
+  }
+
+  // getter for label (target name + relative path to workspace)
+  get label(): string {
+    return `${this.cmd} (${this.relativePathLabel})`;
   }
 }
 
@@ -50,7 +65,6 @@ const getTargetsInFile = async (fileUri: vscode.Uri): Promise<Target[]> => {
     const foundTargetCmd = match[1];
     foundTargets.push(
       new Target({
-        label: foundTargetCmd,
         cmd: foundTargetCmd,
         dir: fileDir,
         uri: fileUri,
@@ -60,72 +74,19 @@ const getTargetsInFile = async (fileUri: vscode.Uri): Promise<Target[]> => {
   return foundTargets;
 };
 
-const getRelativePathLabel = (uri: vscode.Uri): string => {
-  let relativePathLabel = vscode.workspace.asRelativePath(uri);
-
-  const workspaceRoot = vscode.workspace.getWorkspaceFolder(uri);
-  if (!workspaceRoot) {
-    // doesn't match any workspace folder
-    return relativePathLabel;
-  }
-
-  // if relative path is the same as the workspace root
-  if (relativePathLabel === workspaceRoot.name + "/") {
-    relativePathLabel = "root";
-  }
-
-  return relativePathLabel;
-};
-
 const detectTargets = async (pattern: string): Promise<Target[]> => {
   const excludePattern = `{**/${EXCLUDE_DIRS.join(",")}/**}`;
   const filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
   let targets: Target[] = [];
-  let targetCmds: string[] = [];
   for (const fileUri of filesUris) {
-    const foundTargets = await getTargetsInFile(fileUri);
-    for (const foundTarget of foundTargets) {
-      let fileDir = foundTarget.dir;
-
-      // check if target cmd already exists
-      let exists = targetCmds.includes(foundTarget.cmd);
-
-      if (!exists) {
-        targetCmds.push(foundTarget.cmd);
-        targets.push(
-          new Target({
-            label: foundTarget.cmd,
-            cmd: foundTarget.cmd,
-            dir: fileDir,
-            uri: fileUri,
-          })
-        );
-      } else {
-        // if it does not exist, check if it clashes with another target
-        let clashes = false;
-        for (const i in targets) {
-          const target = targets[i];
-          if (target.cmd === foundTarget.cmd) {
-            clashes = true;
-
-            // change label of existing target to include its relative path to the workspace
-            target.setLabel(
-              `${target.cmd} (${getRelativePathLabel(target.uri)})`
-            );
-          }
-        }
-
-        if (clashes) {
-          targets.push(
-            new Target({
-              label: `${foundTarget.cmd} (${getRelativePathLabel(fileUri)})`,
-              cmd: foundTarget.cmd,
-              dir: fileDir,
-              uri: fileUri,
-            })
-          );
-        }
-      }
+    for (const foundTarget of await getTargetsInFile(fileUri)) {
+      targets.push(
+        new Target({
+          cmd: foundTarget.cmd,
+          dir: foundTarget.dir,
+          uri: fileUri,
+        })
+      );
     }
   }
   return targets;
@@ -145,26 +106,11 @@ const runTarget =
       terminal = vscode.window.createTerminal();
     }
     terminal.show();
-    terminal.sendText(`cd ${target.dir}`);
     if (runner === Runner.Just) {
-      // if filename is justfile, then it could be run directly
-      if (target.uri.fsPath.endsWith("justfile")) {
-        terminal.sendText(`just ${target.cmd}`);
-        return;
-      }
-
-      // otherwise, run with just -f
       terminal.sendText(`just -f ${target.uri.fsPath} ${target.cmd}`);
       return;
     }
     if (runner === Runner.Make) {
-      // if filename is Makefile, then it could be run directly
-      if (target.uri.fsPath.endsWith("Makefile")) {
-        terminal.sendText(`make ${target.cmd}`);
-        return;
-      }
-
-      // otherwise, run with make -f
       terminal.sendText(`make -f ${target.uri.fsPath} ${target.cmd}`);
       return;
     }
