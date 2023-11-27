@@ -1,2 +1,8 @@
 target1:
 	@echo "Target 1 from Justfile"
+
+target2:
+	@echo "Target 2 from Justfile"
+
+target3:
+	@echo "Target 3 from Justfile"

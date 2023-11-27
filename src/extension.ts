@@ -47,27 +47,8 @@ class Target {
     this.runner = runner;
   }
 
-  // getter for relative path label (relative path to workspace root or "root" if it is the workspace root)
-  get relativePathLabel(): string {
-    let relativePathLabel = vscode.workspace.asRelativePath(this.uri);
-
-    const workspaceRoot = vscode.workspace.getWorkspaceFolder(this.uri);
-    if (!workspaceRoot) {
-      // doesn't match any workspace folder
-      return relativePathLabel;
-    }
-
-    // if relative path is the same as the workspace root
-    if (relativePathLabel === workspaceRoot.name + "/") {
-      relativePathLabel = "root";
-    }
-
-    return relativePathLabel;
-  }
-
-  // getter for label (target name + relative path to workspace)
   get label(): string {
-    return `${this.cmd} (${this.relativePathLabel})`;
+    return this.cmd;
   }
 
   run(): void {
@@ -118,42 +99,52 @@ const getTargetsInFile = async (
   return foundTargets;
 };
 
-const detectTargets = async (runner: Runner): Promise<Target[]> => {
-  const pattern = `{**/${FILE_PATTERNS[runner].join(",**/")}}`; // e.g. {**/Makefile,**/*.mk} for [Makefile, *.mk]
-  const excludePattern = `{**/${EXCLUDE_DIRS.join(",")}/**}`; // e.g. {**/node_modules/**,**/.git/**} for [node_modules, .git]
-  const filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
-  let targets: Target[] = [];
-  for (const fileUri of filesUris) {
-    targets = targets.concat(await getTargetsInFile(fileUri, runner));
-  }
-  return targets;
-};
-
 class QuickPickItemTarget implements vscode.QuickPickItem {
   constructor(public target: Target) {}
 
   get label(): string {
     return `Run Target: ${this.target.label}`;
   }
-
-  get description(): string {
-    return this.target.relativePathLabel;
-  }
 }
 
-const showQuickPick = (context: vscode.ExtensionContext, targets: Target[]) => {
-  // map each target from its uuid to
-  // item: the item in the quick pick
-  // action: the action to run when the item is selected (run the target)
-  const options: QuickPickItemTarget[] = [];
+const getRelativeUri = (uri: vscode.Uri): string => {
+  let relativePathLabel = vscode.workspace.asRelativePath(uri);
 
-  // add options
-  for (const target of targets) {
-    options.push(new QuickPickItemTarget(target));
+  const workspaceRoot = vscode.workspace.getWorkspaceFolder(uri);
+  if (!workspaceRoot) {
+    // doesn't match any workspace folder
+    return relativePathLabel;
   }
 
+  // if relative path is the same as the workspace root
+  if (relativePathLabel === workspaceRoot.name + "/") {
+    relativePathLabel = "root";
+  }
+
+  return relativePathLabel;
+};
+
+const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
+  const pattern = `{**/${FILE_PATTERNS[runner].join(",**/")}}`; // e.g. {**/Makefile,**/*.mk} for [Makefile, *.mk]
+  const excludePattern = `{**/${EXCLUDE_DIRS.join(",")}/**}`; // e.g. {**/node_modules/**,**/.git/**} for [node_modules, .git]
+  const filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
+
+  let items: vscode.QuickPickItem[] = [];
+  for (const fileUri of filesUris) {
+    items.push({
+      label: getRelativeUri(fileUri),
+      kind: vscode.QuickPickItemKind.Separator,
+    });
+    for (const target of await getTargetsInFile(fileUri, runner)) {
+      items.push(new QuickPickItemTarget(target));
+    }
+  }
+  return items;
+};
+
+const showQuickPick = (items: vscode.QuickPickItem[]) => {
   const quickPick = vscode.window.createQuickPick();
-  quickPick.items = options;
+  quickPick.items = items;
   quickPick.onDidChangeSelection((selection) => {
     if (selection[0]) {
       const selectedItem = selection[0];
@@ -167,14 +158,14 @@ const showQuickPick = (context: vscode.ExtensionContext, targets: Target[]) => {
   quickPick.show();
 };
 
-const runMakefileTarget = (context: vscode.ExtensionContext) => async () => {
-  const targets: Target[] = await detectTargets(Runner.Make);
-  showQuickPick(context, targets);
+const runMakefileTarget = () => async () => {
+  const items = await getItems(Runner.Make);
+  showQuickPick(items);
 };
 
-const runJustfileTarget = (context: vscode.ExtensionContext) => async () => {
-  const targets: Target[] = await detectTargets(Runner.Just);
-  showQuickPick(context, targets);
+const runJustfileTarget = () => async () => {
+  const items = await getItems(Runner.Just);
+  showQuickPick(items);
 };
 
 // This method is called when your extension is activated
@@ -183,13 +174,13 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.makefiles.runTarget",
-      runMakefileTarget(context)
+      runMakefileTarget()
     )
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.justfiles.runTarget",
-      runJustfileTarget(context)
+      runJustfileTarget()
     )
   );
 }
