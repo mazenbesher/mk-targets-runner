@@ -2,7 +2,7 @@
 
 Run targets from Makefiles and [justfiles](https://github.com/casey/just) in VSCode.
 
-Demo: <video src="demo.mp4" controls></video>
+Demo: ![](./doc/demo.gif)
 
 ## Expected files patters
 
