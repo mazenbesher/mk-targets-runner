@@ -16,9 +16,11 @@ For justfiles:
 - `justfile`
 - `*.just`
 
+TODO: Can be configured in settings.
+
 # Features
 
-- Separtore per file
+- Separator per file
 
 ## TODO
 
@@ -28,4 +30,4 @@ For justfiles:
   - [ ] excluded files
   - [ ] matching patterns and regexes
   - [ ] run-commands (now they are `make -f <file> <target>` and `just -f <file> <target>`)
-- [ ] Generator `getTargetsInFile`
+- [x] Generator `getTargetsInFile`

@@ -83,10 +83,10 @@ class Target {
   }
 }
 
-const getTargetsInFile = async (
+async function* getTargetsInFile(
   fileUri: vscode.Uri,
   runner: Runner
-): Promise<Target[]> => {
+): AsyncGenerator<Target, void, void> {
   const fileDoc = await vscode.workspace.openTextDocument(fileUri);
   const fileContent = fileDoc.getText();
   const fileName: string | undefined = fileUri.fsPath.split("/").pop();
@@ -95,21 +95,17 @@ const getTargetsInFile = async (
   }
   const fileDir = fileUri.fsPath.replace(fileName, "");
   const regex = /^([a-zA-Z0-9_-]+):/gm;
-  const foundTargets: Target[] = [];
   let match;
   while ((match = regex.exec(fileContent)) !== null) {
     const foundTargetCmd = match[1];
-    foundTargets.push(
-      new Target({
-        cmd: foundTargetCmd,
-        dir: fileDir,
-        uri: fileUri,
-        runner,
-      })
-    );
+    yield new Target({
+      cmd: foundTargetCmd,
+      dir: fileDir,
+      uri: fileUri,
+      runner,
+    });
   }
-  return foundTargets;
-};
+}
 
 class QuickPickItemTarget implements vscode.QuickPickItem {
   constructor(public target: Target) {}
@@ -151,7 +147,7 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
       label: getRelativeUri(fileUri),
       kind: vscode.QuickPickItemKind.Separator,
     });
-    for (const target of await getTargetsInFile(fileUri, runner)) {
+    for await (const target of getTargetsInFile(fileUri, runner)) {
       items.push(new QuickPickItemTarget(target));
     }
   }
