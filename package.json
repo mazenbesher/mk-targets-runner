@@ -20,6 +20,10 @@
       {
         "command": "mk-targets-runner.makefiles.runTarget",
         "title": "Run Makefile Target"
+      },
+      {
+        "command": "mk-targets-runner.justfiles.runTarget",
+        "title": "Run Justfile Target"
       }
     ]
   },

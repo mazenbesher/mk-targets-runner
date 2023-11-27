@@ -2,95 +2,127 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 
+// globals
+const EXCLUDE_DIRS = ["node_modules", ".git"];
+
 // class to hold target information
 class Target {
   label: string;
   cmd: string;
   dir: string;
-  constructor(label: string, cmd: string, dir: string) {
+  uri: vscode.Uri;
+
+  constructor({
+    label,
+    cmd,
+    dir,
+    uri,
+  }: {
+    label: string;
+    cmd: string;
+    dir: string;
+    uri: vscode.Uri;
+  }) {
     this.label = label;
     this.cmd = cmd;
     this.dir = dir;
+    this.uri = uri;
+  }
+
+  // setter for the label
+  setLabel(label: string) {
+    this.label = label;
   }
 }
 
-const getTargetsInMakefile = async (
-  makefileUri: vscode.Uri
-): Promise<Target[]> => {
-  const makefileDoc = await vscode.workspace.openTextDocument(makefileUri);
-  const makefileContent = makefileDoc.getText();
-  const makefileDir = makefileUri.fsPath.replace("Makefile", "");
+const getTargetsInFile = async (fileUri: vscode.Uri): Promise<Target[]> => {
+  const fileDoc = await vscode.workspace.openTextDocument(fileUri);
+  const fileContent = fileDoc.getText();
+  const fileName: string | undefined = fileUri.fsPath.split("/").pop();
+  if (!fileName) {
+    throw new Error("No file name found");
+  }
+  const fileDir = fileUri.fsPath.replace(fileName, "");
   const regex = /^([a-zA-Z0-9_-]+):/gm;
-  let foundTargets: Target[] = [];
+  const foundTargets: Target[] = [];
   let match;
-  while ((match = regex.exec(makefileContent)) !== null) {
+  while ((match = regex.exec(fileContent)) !== null) {
     const foundTargetCmd = match[1];
-    foundTargets.push(new Target(foundTargetCmd, foundTargetCmd, makefileDir));
+    foundTargets.push(
+      new Target({
+        label: foundTargetCmd,
+        cmd: foundTargetCmd,
+        dir: fileDir,
+        uri: fileUri,
+      })
+    );
   }
   return foundTargets;
 };
 
-const getRelativePathLabel = (path: string, workspaceRoot: string): string => {
-  let relativePathLabel = vscode.workspace.asRelativePath(path);
+const getRelativePathLabel = (uri: vscode.Uri): string => {
+  let relativePathLabel = vscode.workspace.asRelativePath(uri);
+
+  const workspaceRoot = vscode.workspace.getWorkspaceFolder(uri);
+  if (!workspaceRoot) {
+    // doesn't match any workspace folder
+    return relativePathLabel;
+  }
 
   // if relative path is the same as the workspace root
-  if (relativePathLabel === workspaceRoot + "/") {
+  if (relativePathLabel === workspaceRoot.name + "/") {
     relativePathLabel = "root";
   }
 
   return relativePathLabel;
 };
 
-const detectTargets = async (): Promise<Target[]> => {
-  const workspaceRoot = vscode.workspace.rootPath;
-  if (!workspaceRoot) {
-    throw new Error("No workspace root found");
-  }
-
-  // find all makefiles in workspace (Makefile or *.mk)
-  const makefilesUris = await vscode.workspace.findFiles(
-    "{**/Makefile,**/*.mk}",
-    "{**/node_modules/**,**/.git/**}" // ignore node_modules and .git
-  );
+const detectTargets = async (pattern: string): Promise<Target[]> => {
+  const excludePattern = `{**/${EXCLUDE_DIRS.join(",")}/**}`;
+  const filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
   let targets: Target[] = [];
   let targetCmds: string[] = [];
-  for (const makefileUri of makefilesUris) {
-    const foundTargets = await getTargetsInMakefile(makefileUri);
+  for (const fileUri of filesUris) {
+    const foundTargets = await getTargetsInFile(fileUri);
     for (const foundTarget of foundTargets) {
-      let makefileDir = foundTarget.dir;
+      let fileDir = foundTarget.dir;
 
       // check if target cmd already exists
       let exists = targetCmds.includes(foundTarget.cmd);
 
       if (!exists) {
         targetCmds.push(foundTarget.cmd);
-        targets.push(new Target(foundTarget.cmd, foundTarget.cmd, makefileDir));
+        targets.push(
+          new Target({
+            label: foundTarget.cmd,
+            cmd: foundTarget.cmd,
+            dir: fileDir,
+            uri: fileUri,
+          })
+        );
       } else {
         // if it does not exist, check if it clashes with another target
         let clashes = false;
         for (const i in targets) {
           const target = targets[i];
-          if (target.cmd === foundTarget.cmd && target.dir !== makefileDir) {
+          if (target.cmd === foundTarget.cmd) {
             clashes = true;
 
             // change label of existing target to include its relative path to the workspace
-            targets[i].label = `${target.cmd} (${getRelativePathLabel(
-              target.dir,
-              workspaceRoot
-            )})`;
+            target.setLabel(
+              `${target.cmd} (${getRelativePathLabel(target.uri)})`
+            );
           }
         }
 
         if (clashes) {
           targets.push(
-            new Target(
-              `${foundTarget.cmd} (${getRelativePathLabel(
-                makefileDir,
-                workspaceRoot
-              )})`,
-              foundTarget.cmd,
-              makefileDir
-            )
+            new Target({
+              label: `${foundTarget.cmd} (${getRelativePathLabel(fileUri)})`,
+              cmd: foundTarget.cmd,
+              dir: fileDir,
+              uri: fileUri,
+            })
           );
         }
       }
@@ -99,8 +131,14 @@ const detectTargets = async (): Promise<Target[]> => {
   return targets;
 };
 
+enum Runner {
+  Make = "make",
+  Just = "just",
+}
+
 const runTarget =
-  (context: vscode.ExtensionContext) => async (target: Target) => {
+  (context: vscode.ExtensionContext, runner: Runner) =>
+  async (target: Target) => {
     // send command to terminal if it exists or create one and send command
     let terminal = vscode.window.activeTerminal;
     if (!terminal) {
@@ -108,13 +146,37 @@ const runTarget =
     }
     terminal.show();
     terminal.sendText(`cd ${target.dir}`);
-    terminal.sendText(`make ${target.cmd}`);
+    if (runner === Runner.Just) {
+      // if filename is justfile, then it could be run directly
+      if (target.uri.fsPath.endsWith("justfile")) {
+        terminal.sendText(`just ${target.cmd}`);
+        return;
+      }
+
+      // otherwise, run with just -f
+      terminal.sendText(`just -f ${target.uri.fsPath} ${target.cmd}`);
+      return;
+    }
+    if (runner === Runner.Make) {
+      // if filename is Makefile, then it could be run directly
+      if (target.uri.fsPath.endsWith("Makefile")) {
+        terminal.sendText(`make ${target.cmd}`);
+        return;
+      }
+
+      // otherwise, run with make -f
+      terminal.sendText(`make -f ${target.uri.fsPath} ${target.cmd}`);
+      return;
+    }
+
+    throw new Error("Unknown runner");
   };
 
-const main = (context: vscode.ExtensionContext) => async () => {
-  const targets: Target[] = await detectTargets();
-
-  // populate options
+const showQuickPick = (
+  context: vscode.ExtensionContext,
+  targets: Target[],
+  runner: Runner
+) => {
   const options: {
     [key: string]: (context: vscode.ExtensionContext) => Promise<void>;
   } = {};
@@ -122,11 +184,10 @@ const main = (context: vscode.ExtensionContext) => async () => {
     options[`Run Target: ${target.label}`] = async (
       context: vscode.ExtensionContext
     ) => {
-      await runTarget(context)(target);
+      await runTarget(context, runner)(target);
     };
   }
 
-  // show quick pick
   const quickPick = vscode.window.createQuickPick();
   quickPick.items = Object.keys(options).map((label) => ({ label }));
   quickPick.onDidChangeSelection((selection) => {
@@ -139,11 +200,30 @@ const main = (context: vscode.ExtensionContext) => async () => {
   quickPick.show();
 };
 
+const runMakefileTarget = (context: vscode.ExtensionContext) => async () => {
+  const targets: Target[] = await detectTargets("{**/Makefile,**/*.mk}");
+  showQuickPick(context, targets, Runner.Make);
+};
+
+const runJustfileTarget = (context: vscode.ExtensionContext) => async () => {
+  const targets: Target[] = await detectTargets("{**/justfile,**/*.just}");
+  showQuickPick(context, targets, Runner.Just);
+};
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.commands.registerCommand("mk-targets-runner.makefiles.runTarget", main(context))
+    vscode.commands.registerCommand(
+      "mk-targets-runner.makefiles.runTarget",
+      runMakefileTarget(context)
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "mk-targets-runner.justfiles.runTarget",
+      runJustfileTarget(context)
+    )
   );
 }
 
