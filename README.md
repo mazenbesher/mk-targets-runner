@@ -21,13 +21,11 @@ TODO: Can be configured in settings.
 # Features
 
 - Separator per file
+- Support for [`justfile`-comments](https://github.com/casey/just#documentation-comments) (shown as description in the picker)
 
 ## TODO
 
-- [ ] Support for `justfile`-syntax comments
-    - Idea: Show them as description in the picker
 - [ ] Configurations for:
   - [ ] excluded files
   - [ ] matching patterns and regexes
   - [ ] run-commands (now they are `make -f <file> <target>` and `just -f <file> <target>`)
-- [x] Generator `getTargetsInFile`

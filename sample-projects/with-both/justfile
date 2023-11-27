@@ -1,8 +1,10 @@
+# Commment to the target 1
 target1:
 	@echo "Target 1 from Justfile"
 
 target2:
 	@echo "Target 2 from Justfile"
 
+# Commment to the target 3
 target3:
 	@echo "Target 3 from Justfile"

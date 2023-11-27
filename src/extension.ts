@@ -38,23 +38,27 @@ class Target {
   uri: vscode.Uri;
   runner: Runner;
   fsPath: string;
+  comment: string = "";
 
   constructor({
     cmd,
     dir,
     uri,
     runner,
+    comment,
   }: {
     cmd: string;
     dir: string;
     uri: vscode.Uri;
     runner: Runner;
+    comment?: string;
   }) {
     this.name = cmd;
     this.dir = dir;
     this.uri = uri;
     this.runner = runner;
     this.fsPath = uri.fsPath;
+    this.comment = comment || "";
   }
 
   get cmd(): string {
@@ -94,14 +98,15 @@ async function* getTargetsInFile(
     throw new Error("No file name found");
   }
   const fileDir = fileUri.fsPath.replace(fileName, "");
-  const regex = /^([a-zA-Z0-9_-]+):/gm;
+  const regex = /^(#([^\n]*)\n)?([a-zA-Z0-9_-]+):/gm;
   let match;
   while ((match = regex.exec(fileContent)) !== null) {
-    const foundTargetCmd = match[1];
+    // https://regex101.com/r/WZXw2l/1
     yield new Target({
-      cmd: foundTargetCmd,
+      cmd: match[3],
       dir: fileDir,
       uri: fileUri,
+      comment: match[2],
       runner,
     });
   }
@@ -115,7 +120,7 @@ class QuickPickItemTarget implements vscode.QuickPickItem {
   }
 
   get description(): string {
-    return getRelativeUri(this.target.uri);
+    return this.target.comment;
   }
 }
 
