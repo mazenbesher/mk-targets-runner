@@ -22,6 +22,7 @@ TODO: Can be configured in settings.
 
 - Separator per file
 - Support for [`justfile`-comments](https://github.com/casey/just#documentation-comments) (shown as description in the picker)
+- Run included files from correct file. Example: if variable is defined in a file and then a target is included that uses this variable, the variable is not defined in the included file!
 
 ## TODO
 
@@ -29,3 +30,4 @@ TODO: Can be configured in settings.
   - [ ] excluded files
   - [ ] matching patterns and regexes
   - [ ] run-commands (now they are `make -f <file> <target>` and `just -f <file> <target>`)
+- [ ] Timeout for finding targets

@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import * as path from "path";
 
 // globals
 // TODO: make configurable
@@ -29,6 +30,14 @@ const RUN_COMMANDS: {
 } = {
   [Runner.Make]: "<runner> -f <fsPath> <name>",
   [Runner.Just]: "<runner> -f <fsPath> <name>",
+};
+
+// include directives for each runner
+const INCLUDE_DIRECTIVES: {
+  [key in Runner]: string;
+} = {
+  [Runner.Make]: "include",
+  [Runner.Just]: "!include",
 };
 
 // class to hold target information
@@ -87,12 +96,49 @@ class Target {
   }
 }
 
+const getRenderedFileContent = async (
+  doc: vscode.TextDocument,
+  runner: Runner,
+  previouslyIncludedPaths: string[] = []
+): Promise<string> => {
+  // if makefile and has an include statement, then replace the content with the included file (verbatim)
+  // `previouslyIncludedPaths` is used to avoid infinite loop if the included file has an include statement to the current file
+  const fileDir = path.dirname(doc.uri.fsPath);
+  const includeRegex = new RegExp(
+    String.raw`^${INCLUDE_DIRECTIVES[runner]}\s(.*)$`,
+    "gm"
+  );
+  let fileContent = doc.getText();
+  let match;
+  while ((match = includeRegex.exec(fileContent)) !== null) {
+    const includeFile = match[1];
+    const includePath = path.join(fileDir, includeFile);
+    const includePathAbs = path.resolve(includePath);
+    if (!previouslyIncludedPaths.includes(includePathAbs)) {
+      previouslyIncludedPaths.push(includePathAbs);
+      const includeDoc = await vscode.workspace.openTextDocument(
+        includePathAbs
+      );
+      const includeContent = await getRenderedFileContent(
+        includeDoc,
+        runner,
+        previouslyIncludedPaths
+      );
+      fileContent = fileContent.replace(match[0], includeContent);
+    }
+  }
+
+  return fileContent;
+};
+
 async function* getTargetsInFile(
   fileUri: vscode.Uri,
   runner: Runner
 ): AsyncGenerator<Target, void, void> {
-  const fileDoc = await vscode.workspace.openTextDocument(fileUri);
-  const fileContent = fileDoc.getText();
+  const fileDoc: vscode.TextDocument = await vscode.workspace.openTextDocument(
+    fileUri
+  );
+  const fileContent = await getRenderedFileContent(fileDoc, runner);
   const fileName: string | undefined = fileUri.fsPath.split("/").pop();
   if (!fileName) {
     throw new Error("No file name found");
