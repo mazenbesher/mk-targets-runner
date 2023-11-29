@@ -2,6 +2,7 @@
   "name": "mk-targets-runner",
   "displayName": "Targets Runner",
   "description": "Run makefiles and justfiles targets from the command palette",
+  "icon": "icons/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/mazenbesher/mk-targets-runner"
