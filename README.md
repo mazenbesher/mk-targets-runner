@@ -1,6 +1,7 @@
 # Targets Runner
 
 Run targets from Makefiles and [justfiles](https://github.com/casey/just) in VSCode.
+Download from [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=mazenb.mk-targets-runner).
 
 ![](https://raw.githubusercontent.com/mazenbesher/mk-targets-runner/main/doc/demo.gif)
 
