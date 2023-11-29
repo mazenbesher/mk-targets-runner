@@ -198,7 +198,9 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
     filesUris.some((uri) => uri.toString() === activeFileUri.toString())
   ) {
     // remove active file from the list and add it to the top
-    filesUris = filesUris.filter((uri) => uri.toString() !== activeFileUri.toString())
+    filesUris = filesUris.filter(
+      (uri) => uri.toString() !== activeFileUri.toString()
+    );
     filesUris.unshift(activeFileUri);
   }
 
@@ -216,6 +218,14 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
 };
 
 const showQuickPick = (items: vscode.QuickPickItem[]) => {
+  // if no files found, then show error message
+  if (!items.length) {
+    vscode.window.showErrorMessage(
+      `No target files found. Please check the file pattern and excluded folders patterns in the settings.`
+    );
+    return;
+  }
+
   const quickPick = vscode.window.createQuickPick();
   quickPick.items = items;
   quickPick.onDidChangeSelection((selection) => {

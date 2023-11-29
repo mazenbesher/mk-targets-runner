@@ -31,4 +31,3 @@ Configurable in the extension settings `mk-targets-runner.filePattern`.
 ## TODO
 
 - [ ] Timeout for finding targets
-- [ ] Show targets of active file (if its a makefile or justfile) at the top of the picker
