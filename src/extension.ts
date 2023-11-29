@@ -53,6 +53,7 @@ class Target {
       .getConfiguration("mk-targets-runner.command")
       .get(this.runner);
     if (!command) {
+      // TODO: user friendly error message
       throw new Error(`No command found for runner ${this.runner}`);
     }
 
@@ -154,8 +155,8 @@ class QuickPickItemTarget implements vscode.QuickPickItem {
   }
 }
 
-const getRelativeUri = (uri: vscode.Uri): string => {
-  let relativePathLabel = vscode.workspace.asRelativePath(uri);
+const getRelativePathLabel = (uri: vscode.Uri): string => {
+  let relativePathLabel: string = vscode.workspace.asRelativePath(uri);
 
   const workspaceRoot = vscode.workspace.getWorkspaceFolder(uri);
   if (!workspaceRoot) {
@@ -176,7 +177,7 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
   const filePattern: string[] | undefined = vscode.workspace
     .getConfiguration("mk-targets-runner.filePattern")
     .get(runner);
-  if (!filePattern) {
+  if (!filePattern || !filePattern.length) {
     throw new Error(`No file pattern found for runner ${runner}`);
   }
 
@@ -184,7 +185,7 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
     .getConfiguration("mk-targets-runner")
     .get("excludedFoldersPatterns");
   if (!excludedFoldersPatterns) {
-    throw new Error(`No excluded folders patterns found for runner ${runner}`);
+    throw new Error(`No excluded folders patterns found.`);
   }
 
   const pattern = `{**/${filePattern.join(",**/")}}`; // e.g. {**/Makefile,**/*.mk} for [Makefile, *.mk]
@@ -207,7 +208,7 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
   let items: vscode.QuickPickItem[] = [];
   for (const fileUri of filesUris) {
     items.push({
-      label: getRelativeUri(fileUri),
+      label: getRelativePathLabel(fileUri),
       kind: vscode.QuickPickItemKind.Separator,
     });
     for await (const target of getTargetsInFile(fileUri, runner)) {
@@ -217,11 +218,21 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
   return items;
 };
 
-const showQuickPick = (items: vscode.QuickPickItem[]) => {
-  // if no files found, then show error message
+const showQuickPick = async (runner: Runner) => {
+  const items: vscode.QuickPickItem[] | undefined = await getItems(runner).catch((err) => {
+    vscode.window.showErrorMessage(err.message);
+    return undefined;
+  });
+
+  // error occurred
+  if (!items) {
+    return;
+  }
+
+  // no files found
   if (!items.length) {
-    vscode.window.showErrorMessage(
-      `No target files found. Please check the file pattern and excluded folders patterns in the settings.`
+    vscode.window.showWarningMessage(
+      `No target files found.`
     );
     return;
   }
@@ -247,13 +258,13 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.makefiles.runTarget",
-      async () => showQuickPick(await getItems(Runner.Make))
+      async () => await showQuickPick(Runner.Make)
     )
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.justfiles.runTarget",
-      async () => showQuickPick(await getItems(Runner.Just))
+      async () => await showQuickPick(Runner.Just)
     )
   );
 }
