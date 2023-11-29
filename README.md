@@ -2,7 +2,7 @@
 
 Run targets from Makefiles and [justfiles](https://github.com/casey/just) in VSCode.
 
-Demo: ![](./doc/demo.gif)
+![](https://raw.githubusercontent.com/mazenbesher/mk-targets-runner/main/doc/demo.gif)
 
 ## Expected files patters
 
