@@ -1,6 +1,7 @@
 {
   "name": "mk-targets-runner",
   "displayName": "Targets Runner",
+  "publisher": "mazenb",
   "description": "Run makefiles and justfiles targets from the command palette",
   "icon": "icons/icon.png",
   "repository": {
