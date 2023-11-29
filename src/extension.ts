@@ -241,29 +241,19 @@ const showQuickPick = (items: vscode.QuickPickItem[]) => {
   quickPick.show();
 };
 
-const runMakefileTarget = () => async () => {
-  const items = await getItems(Runner.Make);
-  showQuickPick(items);
-};
-
-const runJustfileTarget = () => async () => {
-  const items = await getItems(Runner.Just);
-  showQuickPick(items);
-};
-
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.makefiles.runTarget",
-      runMakefileTarget()
+      async () => showQuickPick(await getItems(Runner.Make))
     )
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.justfiles.runTarget",
-      runJustfileTarget()
+      async () => showQuickPick(await getItems(Runner.Just))
     )
   );
 }
