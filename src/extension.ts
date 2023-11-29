@@ -3,34 +3,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-// globals
-// TODO: make configurable
-
 // supported runners
 enum Runner {
   Make = "make",
   Just = "just",
 }
-
-// exclude dirs
-const EXCLUDE_DIRS = ["node_modules", ".git"];
-
-// patterns for each runner files
-const FILE_PATTERNS: {
-  [key in Runner]: string[];
-} = {
-  [Runner.Make]: ["Makefile", "*.mk"],
-  [Runner.Just]: ["justfile", "*.just"],
-};
-
-// run command for each runner
-// supported placeholders are the string properties of the class Target
-const RUN_COMMANDS: {
-  [key in Runner]: string;
-} = {
-  [Runner.Make]: "<runner> -f <fsPath> <name>",
-  [Runner.Just]: "<runner> -f <fsPath> <name>",
-};
 
 // include directives for each runner
 const INCLUDE_DIRECTIVES: {
@@ -71,7 +48,14 @@ class Target {
   }
 
   get cmd(): string {
-    let command = RUN_COMMANDS[this.runner];
+    // get run command from settings
+    let command: string | undefined = vscode.workspace
+      .getConfiguration("mk-targets-runner.command")
+      .get(this.runner);
+    if (!command) {
+      throw new Error(`No command found for runner ${this.runner}`);
+    }
+
     // replace placeholders with values
     for (const property in this) {
       if (this.hasOwnProperty(property)) {
@@ -188,8 +172,23 @@ const getRelativeUri = (uri: vscode.Uri): string => {
 };
 
 const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
-  const pattern = `{**/${FILE_PATTERNS[runner].join(",**/")}}`; // e.g. {**/Makefile,**/*.mk} for [Makefile, *.mk]
-  const excludePattern = `{**/${EXCLUDE_DIRS.join(",")}/**}`; // e.g. {**/node_modules/**,**/.git/**} for [node_modules, .git]
+  // get configurations
+  const filePattern: string[] | undefined = vscode.workspace
+    .getConfiguration("mk-targets-runner.filePattern")
+    .get(runner);
+  if (!filePattern) {
+    throw new Error(`No file pattern found for runner ${runner}`);
+  }
+
+  const excludedFoldersPatterns: string[] | undefined = vscode.workspace
+    .getConfiguration("mk-targets-runner")
+    .get("excludedFoldersPatterns");
+  if (!excludedFoldersPatterns) {
+    throw new Error(`No excluded folders patterns found for runner ${runner}`);
+  }
+
+  const pattern = `{**/${filePattern.join(",**/")}}`; // e.g. {**/Makefile,**/*.mk} for [Makefile, *.mk]
+  const excludePattern = `{${excludedFoldersPatterns.join(",")}}`; // e.g. {**/node_modules,**/.git} for [**/node_modules, **/.git]
   const filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
 
   let items: vscode.QuickPickItem[] = [];

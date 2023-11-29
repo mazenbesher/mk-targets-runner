@@ -1,6 +1,6 @@
 {
   "name": "mk-targets-runner",
-  "displayName": "mk-targets-runner",
+  "displayName": "Targets Runner",
   "description": "Run makefiles and justfiles targets from the command palette",
   "repository": {
     "type": "git",
@@ -25,7 +25,46 @@
         "command": "mk-targets-runner.justfiles.runTarget",
         "title": "Run Justfile Target"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Targets Runner",
+      "properties": {
+        "mk-targets-runner.command.make": {
+          "type": "string",
+          "default": "make -f <fsPath> <name>",
+          "markdownDescription": "The command to run makefiles targets.\n\n- `<fsPath>` will be replaced with the makefile path.\n- `<name>` will be replaced with the target name.\n- `<dir>` will be replaced with the makefile directory."
+        },
+        "mk-targets-runner.command.just": {
+          "type": "string",
+          "default": "just -f <fsPath> <name>",
+          "markdownDescription": "The command to run justfiles targets.\n\n- `<fsPath>` will be replaced with the justfile path.\n- `<name>` will be replaced with the target name.\n- `<dir>` will be replaced with the justfile directory."
+        },
+        "mk-targets-runner.filePattern.make": {
+          "type": "array",
+          "default": [
+            "Makefile",
+            "*.mk"
+          ],
+          "description": "The glob patterns to match makefiles."
+        },
+        "mk-targets-runner.filePattern.just": {
+          "type": "array",
+          "default": [
+            "justfile",
+            "*.just"
+          ],
+          "description": "The glob patterns to match justfiles."
+        },
+        "mk-targets-runner.excludedFoldersPatterns": {
+          "type": "array",
+          "default": [
+            "**/.git",
+            "**/node_modules"
+          ],
+          "description": "The glob patterns to exclude folders."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

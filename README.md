@@ -16,7 +16,7 @@ For justfiles:
 - `justfile`
 - `*.just`
 
-TODO: Can be configured in settings.
+Configurable in the extension settings `mk-targets-runner.filePattern`.
 
 # Features
 
@@ -24,10 +24,11 @@ TODO: Can be configured in settings.
 - Support for [`justfile`-comments](https://github.com/casey/just#documentation-comments) (shown as description in the picker)
 - Run included files from correct file. Example: if variable is defined in a file and then a target is included that uses this variable, the variable is not defined in the included file!
 
+# Configurations
+- For excluded files `mk-targets-runner.excludedFoldersPatterns` (default: `["**/node_modules", "**/.git"]`)
+- For run-commands (now they are `make -f <file> <target>` and `just -f <file> <target>`)
+
 ## TODO
 
-- [ ] Configurations for:
-  - [ ] excluded files
-  - [ ] matching patterns and regexes
-  - [ ] run-commands (now they are `make -f <file> <target>` and `just -f <file> <target>`)
 - [ ] Timeout for finding targets
+- [ ] Show targets of active file (if its a makefile or justfile) at the top of the picker
