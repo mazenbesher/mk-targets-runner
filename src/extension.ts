@@ -189,7 +189,18 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
 
   const pattern = `{**/${filePattern.join(",**/")}}`; // e.g. {**/Makefile,**/*.mk} for [Makefile, *.mk]
   const excludePattern = `{${excludedFoldersPatterns.join(",")}}`; // e.g. {**/node_modules,**/.git} for [**/node_modules, **/.git]
-  const filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
+  let filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
+
+  // if active file is a target file, then add it to the top of the list
+  const activeFileUri = vscode.window.activeTextEditor?.document.uri;
+  if (
+    activeFileUri &&
+    filesUris.some((uri) => uri.toString() === activeFileUri.toString())
+  ) {
+    // remove active file from the list and add it to the top
+    filesUris = filesUris.filter((uri) => uri.toString() !== activeFileUri.toString())
+    filesUris.unshift(activeFileUri);
+  }
 
   let items: vscode.QuickPickItem[] = [];
   for (const fileUri of filesUris) {
