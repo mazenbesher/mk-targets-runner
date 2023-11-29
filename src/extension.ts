@@ -257,13 +257,13 @@ const showQuickPick = async (runner: Runner) => {
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "mk-targets-runner.makefiles.runTarget",
+      "mk-targets-runner.runTarget.make",
       async () => await showQuickPick(Runner.Make)
     )
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "mk-targets-runner.justfiles.runTarget",
+      "mk-targets-runner.runTarget.just",
       async () => await showQuickPick(Runner.Just)
     )
   );

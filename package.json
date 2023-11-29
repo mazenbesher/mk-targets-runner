@@ -20,11 +20,11 @@
   "contributes": {
     "commands": [
       {
-        "command": "mk-targets-runner.makefiles.runTarget",
+        "command": "mk-targets-runner.runTarget.make",
         "title": "Run Makefile Target"
       },
       {
-        "command": "mk-targets-runner.justfiles.runTarget",
+        "command": "mk-targets-runner.runTarget.just",
         "title": "Run Justfile Target"
       }
     ],
