@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/mazenbesher/mk-targets-runner"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -21,11 +21,15 @@
     "commands": [
       {
         "command": "mk-targets-runner.runTarget.make",
-        "title": "Run Makefile Target"
+        "title": "Targets Runner: Run Makefile Target"
       },
       {
         "command": "mk-targets-runner.runTarget.just",
-        "title": "Run Justfile Target"
+        "title": "Targets Runner: Run Justfile Target"
+      },
+      {
+        "command": "mk-targets-runner.rerunLastTarget",
+        "title": "Targets Runner: Re-Run Last Executed Target"
       }
     ],
     "configuration": {

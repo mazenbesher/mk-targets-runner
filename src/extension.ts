@@ -17,6 +17,11 @@ const INCLUDE_DIRECTIVES: {
   [Runner.Just]: "!include",
 };
 
+// fixed keys for workspace state
+enum WorkspaceStateKey {
+  LastExecutedTarget = "LastExecutedTarget",
+}
+
 // class to hold target information
 class Target {
   name: string;
@@ -70,7 +75,10 @@ class Target {
     return command;
   }
 
-  run(): void {
+  run(context: vscode.ExtensionContext): void {
+    // add target to workspace state
+    context.workspaceState.update(WorkspaceStateKey.LastExecutedTarget, this);
+
     // send command to terminal if it exists or create one and send command
     let terminal = vscode.window.activeTerminal;
     if (!terminal) {
@@ -218,8 +226,13 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
   return items;
 };
 
-const showQuickPick = async (runner: Runner) => {
-  const items: vscode.QuickPickItem[] | undefined = await getItems(runner).catch((err) => {
+const showQuickPick = async (
+  context: vscode.ExtensionContext,
+  runner: Runner
+) => {
+  const items: vscode.QuickPickItem[] | undefined = await getItems(
+    runner
+  ).catch((err) => {
     vscode.window.showErrorMessage(err.message);
     return undefined;
   });
@@ -231,9 +244,7 @@ const showQuickPick = async (runner: Runner) => {
 
   // no files found
   if (!items.length) {
-    vscode.window.showWarningMessage(
-      `No target files found.`
-    );
+    vscode.window.showWarningMessage(`No target files found.`);
     return;
   }
 
@@ -243,7 +254,7 @@ const showQuickPick = async (runner: Runner) => {
     if (selection[0]) {
       const selectedItem = selection[0];
       if (selectedItem instanceof QuickPickItemTarget) {
-        selectedItem.target.run();
+        selectedItem.target.run(context);
       }
       quickPick.dispose(); // Disposes the quick pick after an item is selected
     }
@@ -252,19 +263,36 @@ const showQuickPick = async (runner: Runner) => {
   quickPick.show();
 };
 
+const rerunLastTarget = (context: vscode.ExtensionContext) => {
+  // get target from workspace state
+  const lastTarget: Target | undefined = context.workspaceState.get(
+    WorkspaceStateKey.LastExecutedTarget
+  );
+  if (!lastTarget) {
+    vscode.window.showInformationMessage(`No last target found.`);
+    return;
+  }
+  lastTarget.run(context);
+};
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.runTarget.make",
-      async () => await showQuickPick(Runner.Make)
+      async () => await showQuickPick(context, Runner.Make)
     )
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.runTarget.just",
-      async () => await showQuickPick(Runner.Just)
+      async () => await showQuickPick(context, Runner.Just)
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mk-targets-runner.rerunLastTarget", () =>
+      rerunLastTarget(context)
     )
   );
 }
