@@ -36,8 +36,8 @@ export class InlineTargetRunner implements vscode.CodeLensProvider {
       return [];
     }
 
-    // don't show code lenses for dirty, closed or untitled documents
-    if (document.isDirty || document.isClosed || document.isUntitled) {
+    // don't show code lenses for closed or untitled documents
+    if (document.isClosed || document.isUntitled) {
       return [];
     }
 
