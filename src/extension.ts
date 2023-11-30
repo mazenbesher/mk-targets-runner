@@ -4,8 +4,9 @@ import * as config from "./config";
 import * as utils from "./utils";
 import * as quickPick from "./quickPick";
 import { Target } from "./target";
-import { Make, Just } from "./runner";
+import { allRunners } from "./runner";
 import { WorkspaceStateKey } from "./constants";
+import { InlineTargetRunner } from "./inlineTargetRunner";
 
 const rerunLastTarget = (context: vscode.ExtensionContext) => {
   // get target from workspace state
@@ -20,20 +21,33 @@ const rerunLastTarget = (context: vscode.ExtensionContext) => {
 };
 
 // This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "mk-targets-runner.runTarget.make",
-      async () => await quickPick.showQuickPick(context, Make)
-    )
-  );
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "mk-targets-runner.runTarget.just",
-      async () => await quickPick.showQuickPick(context, Just)
-    )
-  );
+  for (const runner of allRunners) {
+    // register innline target runner
+    vscode.languages.registerCodeLensProvider(
+      {
+        pattern: utils.globsToPattern(config.getFilePattern(runner)),
+      },
+      new InlineTargetRunner(runner)
+    );
+
+    // register run target command for each runner from a quick pick
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        `mk-targets-runner.runTargetFromQuickPick.${runner.cmd}`,
+        async () => await quickPick.showQuickPick(context, runner)
+      )
+    );
+
+    // run target directly (used for the inline target runner)
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        `mk-targets-runner.runTarget.${runner.cmd}`,
+        (tgt: Target) => tgt.run(context)
+      )
+    );
+  }
+
   context.subscriptions.push(
     vscode.commands.registerCommand("mk-targets-runner.rerunLastTarget", () =>
       rerunLastTarget(context)

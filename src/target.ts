@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
+import * as utils from "./utils";
 import { Runner } from "./runner";
 import { WorkspaceStateKey } from "./constants";
 
@@ -113,12 +114,10 @@ export async function* getTargetsInFile(
     fileUri
   );
   const fileContent = await getRenderedFileContent(fileDoc, runner);
-  const fileName: string | undefined = fileUri.fsPath.split("/").pop();
-  if (!fileName) {
-    throw new Error("No file name found");
-  }
-  const fileDir = fileUri.fsPath.replace(fileName, "");
-  for (const { targetName, comment } of runner.getTargetsInText(fileContent)) {
+  const { fileDir } = utils.getFileDetails(fileUri);
+  for (const { targetName, comment } of runner.getMatchedTargetsInText(
+    fileContent
+  )) {
     yield new Target({
       cmd: targetName,
       dir: fileDir,

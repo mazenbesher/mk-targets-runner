@@ -8,23 +8,25 @@
     "type": "git",
     "url": "https://github.com/mazenbesher/mk-targets-runner"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.84.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "mk-targets-runner.runTarget.make",
+        "command": "mk-targets-runner.runTargetFromQuickPick.make",
         "title": "Targets Runner: Run Makefile Target"
       },
       {
-        "command": "mk-targets-runner.runTarget.just",
+        "command": "mk-targets-runner.runTargetFromQuickPick.just",
         "title": "Targets Runner: Run Justfile Target"
       },
       {
@@ -68,6 +70,11 @@
             "**/node_modules"
           ],
           "description": "The glob patterns to exclude folders."
+        },
+        "mk-targets-runner.enableInlineTargetRunner": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline target runner."
         }
       }
     }

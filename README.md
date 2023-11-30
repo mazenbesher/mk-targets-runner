@@ -3,6 +3,14 @@
 Run targets from Makefiles and [justfiles](https://github.com/casey/just) in VSCode.
 Download from [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=mazenb.mk-targets-runner).
 
+## Inline runner
+
+![](https://raw.githubusercontent.com/mazenbesher/mk-targets-runner/main/doc/inline-runner.png)
+
+Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
+
+## Run targets from quickpick
+
 ![](https://raw.githubusercontent.com/mazenbesher/mk-targets-runner/main/doc/demo.gif)
 
 ## Expected files patters
@@ -26,12 +34,12 @@ Configurable in the extension settings `mk-targets-runner.filePattern`.
 - Run included files from correct file. Example: if variable is defined in a file and then a target is included that uses this variable, the variable is not defined in the included file!
 
 # Configurations
+
 - For excluded files `mk-targets-runner.excludedFoldersPatterns` (default: `["**/node_modules", "**/.git"]`)
 - For run-commands (now they are `make -f <file> <target>` and `just -f <file> <target>`)
 
 ## TODO
 
 - [ ] Timeout for finding targets
-- [ ] Inline option to run target (can be disabled via `mk-targets-runner.inlineRun`)
 - [ ] Add tasks via the [`TaskProvider`](https://code.visualstudio.com/api/extension-guides/task-provider)
 - [ ] Right now the extension uses the activation event `onLanguage` since the extension should be activated for any targetfile type which is dynmically determined. This is not ideal since it will be activated for any file.
