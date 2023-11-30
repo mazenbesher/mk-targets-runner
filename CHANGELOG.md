@@ -13,8 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Command to re-run last executed target
 
-## [0.0.3] - 2023-11-30
+## [0.0.3] & [0.1.0] - 2023-11-30
 
 ### Added
 
 - Run targets inline using Codelens
+
+## [0.1.1] - 2023-11-30
+
+### Fixed
+
+- Inline target runner with comments

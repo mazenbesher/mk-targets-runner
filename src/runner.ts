@@ -1,20 +1,38 @@
 export class Runner {
+  targetRegexp: RegExp;
+
+  /**
+   * Represents a runner object.
+   * @param targetCommentRegexpString - The regular expression string for target name and its comment. It should include two named capture groups: `comment` and `targetName`.
+   */
   constructor(
     public cmd: string,
     public includeDirective: string,
-    public targetRegexp: RegExp
-  ) {}
+    public targetCommentRegexpString: string
+  ) {
+    if (!targetCommentRegexpString.includes("?<comment>")) {
+      throw new Error(
+        `targetCommentRegexpString should include ?<comment> named capture group`
+      );
+    }
+    if (!targetCommentRegexpString.includes("?<targetName>")) {
+      throw new Error(
+        `targetCommentRegexpString should include ?<targetName> named capture group`
+      );
+    }
+    this.targetRegexp = new RegExp(targetCommentRegexpString, "gmd"); // d: to get mache index
+  }
 
   *getMatchedTargetsInText(
     text: string
-  ): Iterable<{ targetName: string; comment: string; match: RegExpExecArray }> {
+  ): Iterable<{ targetName: string; comment: string; matchIndex: number }> {
     // https://regex101.com/r/WZXw2l/1
     let match: RegExpExecArray | null;
     while ((match = this.targetRegexp.exec(text)) !== null) {
       yield {
-        comment: match[2],
-        targetName: match[3],
-        match,
+        comment: match.groups?.["comment"] || "",
+        targetName: match.groups?.["targetName"] || "",
+        matchIndex: match.index,
       };
     }
   }
@@ -23,13 +41,13 @@ export class Runner {
 const Make = new Runner(
   "make",
   "include",
-  /^(#([^\n]*)\n)?([a-zA-Z0-9_-]+):/gm
+  String.raw`^(#(?<comment>[^\n]*)\n)?(?<targetName>[a-zA-Z0-9_-]+):`
 );
 
 const Just = new Runner(
   "just",
   "!include",
-  /^(#([^\n]*)\n)?([a-zA-Z0-9_-]+):/gm
+  String.raw`^(#(?<comment>[^\n]*)\n)?(?<targetName>[a-zA-Z0-9_-]+):`
 );
 
 export const allRunners = [Make, Just];

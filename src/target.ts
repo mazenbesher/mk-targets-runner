@@ -114,7 +114,7 @@ export async function* getTargetsInFile(
     fileUri
   );
   const fileContent = await getRenderedFileContent(fileDoc, runner);
-  const { fileDir } = utils.getFileDetails(fileUri);
+  const { fileDir } = utils.getTextDocDetails(fileDoc);
   for (const { targetName, comment } of runner.getMatchedTargetsInText(
     fileContent
   )) {

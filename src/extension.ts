@@ -13,7 +13,7 @@ const rerunLastTarget = (context: vscode.ExtensionContext) => {
   const lastTarget: Target | undefined = context.workspaceState.get(
     WorkspaceStateKey.LastExecutedTarget
   );
-  if (!lastTarget) {
+  if (!lastTarget || !(lastTarget instanceof Target)) {
     vscode.window.showInformationMessage(`No last target found.`);
     return;
   }

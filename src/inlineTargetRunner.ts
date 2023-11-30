@@ -36,34 +36,35 @@ export class InlineTargetRunner implements vscode.CodeLensProvider {
       return [];
     }
 
+    // don't show code lenses for dirty, closed or untitled documents
+    if (document.isDirty || document.isClosed || document.isUntitled) {
+      return [];
+    }
+
     this.codeLenses = [];
+    const { fileDir } = utils.getTextDocDetails(document);
     const fileUri = document.uri;
-    const { fileDir } = utils.getFileDetails(fileUri);
     const text = document.getText();
-    for (const targetMatch of this.runner.getMatchedTargetsInText(text)) {
-      const line = document.lineAt(
-        document.positionAt(targetMatch.match.index).line
-      );
-      const indexOf = line.text.indexOf(targetMatch.match[0]);
-      const position = new vscode.Position(line.lineNumber, indexOf);
-      const range = document.getWordRangeAtPosition(
-        position,
-        new RegExp(this.runner.targetRegexp)
-      );
-      if (range) {
-        this.codeLenses.push(
-          new TargetCodeLens(
-            range,
-            new target.Target({
-              cmd: targetMatch.targetName,
-              dir: fileDir,
-              uri: fileUri,
-              comment: targetMatch.comment,
-              runner: this.runner,
-            })
-          )
-        );
-      }
+    const newLineChar =
+      document.eol === vscode.EndOfLine.LF
+        ? text.split("\n")
+        : text.split("\r\n");
+
+    for (const {
+      targetName,
+      comment,
+      matchIndex,
+    } of this.runner.getMatchedTargetsInText(text)) {
+      const matchPosition: vscode.Position = document.positionAt(matchIndex);
+      const line: vscode.TextLine = document.lineAt(matchPosition); // Note for comments, this would match the comment line, not the target line
+      const newTarget = new target.Target({
+        cmd: targetName,
+        dir: fileDir,
+        uri: fileUri,
+        comment: comment,
+        runner: this.runner,
+      });
+      this.codeLenses.push(new TargetCodeLens(line.range, newTarget));
     }
     return this.codeLenses;
   }
