@@ -1,0 +1,108 @@
+import * as vscode from "vscode";
+
+import * as config from "./config";
+import * as utils from "./utils";
+import * as target from "./target";
+import { Runner } from "./runner";
+
+class QuickPickItemTarget implements vscode.QuickPickItem {
+  constructor(public target: target.Target) {}
+
+  get label(): string {
+    return `Run Target: ${this.target.name}`;
+  }
+
+  get description(): string {
+    return this.target.comment;
+  }
+}
+
+const getRelativePathLabel = (uri: vscode.Uri): string => {
+  let relativePathLabel: string = vscode.workspace.asRelativePath(uri);
+
+  const workspaceRoot = vscode.workspace.getWorkspaceFolder(uri);
+  if (!workspaceRoot) {
+    // doesn't match any workspace folder
+    return relativePathLabel;
+  }
+
+  // if relative path is the same as the workspace root
+  if (relativePathLabel === workspaceRoot.name + "/") {
+    relativePathLabel = "root";
+  }
+
+  return relativePathLabel;
+};
+
+const getItems = async (
+  runner: Runner
+): Promise<vscode.QuickPickItem[]> => {
+  const filePattern: string[] = config.getFilePattern(runner);
+  const excludedFoldersPatterns: string[] = config.getExcludedFolders();
+
+  const pattern = utils.globsToPattern(filePattern);
+  const excludePattern = `{${excludedFoldersPatterns.join(",")}}`; // e.g. {**/node_modules,**/.git} for [**/node_modules, **/.git]
+  let filesUris = await vscode.workspace.findFiles(pattern, excludePattern);
+
+  // if active file is a target file, then add it to the top of the list
+  const activeFileUri = vscode.window.activeTextEditor?.document.uri;
+  if (
+    activeFileUri &&
+    filesUris.some((uri) => uri.toString() === activeFileUri.toString())
+  ) {
+    // remove active file from the list and add it to the top
+    filesUris = filesUris.filter(
+      (uri) => uri.toString() !== activeFileUri.toString()
+    );
+    filesUris.unshift(activeFileUri);
+  }
+
+  let items: vscode.QuickPickItem[] = [];
+  for (const fileUri of filesUris) {
+    items.push({
+      label: getRelativePathLabel(fileUri),
+      kind: vscode.QuickPickItemKind.Separator,
+    });
+    for await (const tgt of target.getTargetsInFile(fileUri, runner)) {
+      items.push(new QuickPickItemTarget(tgt));
+    }
+  }
+  return items;
+};
+
+export const showQuickPick = async (
+  context: vscode.ExtensionContext,
+  runner: Runner
+) => {
+  const items: vscode.QuickPickItem[] | undefined = await getItems(
+    runner
+  ).catch((err) => {
+    vscode.window.showErrorMessage(err.message);
+    return undefined;
+  });
+
+  // error occurred
+  if (!items) {
+    return;
+  }
+
+  // no files found
+  if (!items.length) {
+    vscode.window.showWarningMessage(`No target files found.`);
+    return;
+  }
+
+  const quickPick = vscode.window.createQuickPick();
+  quickPick.items = items;
+  quickPick.onDidChangeSelection((selection) => {
+    if (selection[0]) {
+      const selectedItem = selection[0];
+      if (selectedItem instanceof QuickPickItemTarget) {
+        selectedItem.target.run(context);
+      }
+      quickPick.dispose(); // Disposes the quick pick after an item is selected
+    }
+  });
+  quickPick.onDidHide(() => quickPick.dispose());
+  quickPick.show();
+};

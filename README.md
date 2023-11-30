@@ -32,3 +32,6 @@ Configurable in the extension settings `mk-targets-runner.filePattern`.
 ## TODO
 
 - [ ] Timeout for finding targets
+- [ ] Inline option to run target (can be disabled via `mk-targets-runner.inlineRun`)
+- [ ] Add tasks via the [`TaskProvider`](https://code.visualstudio.com/api/extension-guides/task-provider)
+- [ ] Right now the extension uses the activation event `onLanguage` since the extension should be activated for any targetfile type which is dynmically determined. This is not ideal since it will be activated for any file.
