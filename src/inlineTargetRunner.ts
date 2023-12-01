@@ -55,8 +55,12 @@ export class InlineTargetRunner implements vscode.CodeLensProvider {
       comment,
       matchIndex,
     } of this.runner.getMatchedTargetsInText(text)) {
-      const matchPosition: vscode.Position = document.positionAt(matchIndex);
-      const line: vscode.TextLine = document.lineAt(matchPosition); // Note for comments, this would match the comment line, not the target line
+      const matchPosition: vscode.Position = document.positionAt(
+        matchIndex + comment.length + 2
+        // TODO: why 2?
+        // Without comment.length, the codelens would appera at the comment line, not the target line
+      );
+      const line: vscode.TextLine = document.lineAt(matchPosition);
       const newTarget = new target.Target({
         cmd: targetName,
         dir: fileDir,
