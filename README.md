@@ -26,14 +26,14 @@ Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
 
 <!-- START_CONFIG_TABLE -->
 
-| Property                                     | Description                           | Type      | Default Value                    |
-| -------------------------------------------- | ------------------------------------- | --------- | -------------------------------- |
-| `mk-targets-runner.command.make`             | The command to run makefiles targets. | `string`  | `make -f <fsPath> <name>`        |
-| `mk-targets-runner.command.just`             | The command to run justfiles targets. | `string`  | `just -f <fsPath> <name>`        |
-| `mk-targets-runner.filePattern.make`         | The glob patterns to match makefiles. | `array`   | `['Makefile', '*.mk']`           |
-| `mk-targets-runner.filePattern.just`         | The glob patterns to match justfiles. | `array`   | `['justfile', '*.just']`         |
-| `mk-targets-runner.excludedFoldersPatterns`  | The glob patterns to exclude folders. | `array`   | `['**/.git', '**/node_modules']` |
-| `mk-targets-runner.enableInlineTargetRunner` | Enable inline target runner.          | `boolean` | `True`                           |
+| Property | Description | Type | Default Value |
+| - | - | - | - |
+| `mk-targets-runner.command.make` | The command to run makefiles targets. | `string` | `cd <dir>; make <name>; cd -` |
+| `mk-targets-runner.command.just` | The command to run justfiles targets. | `string` | `just -f <fsPath> <name>` |
+| `mk-targets-runner.filePattern.make` | The glob patterns to match makefiles. | `array` | `['Makefile', '*.mk']` |
+| `mk-targets-runner.filePattern.just` | The glob patterns to match justfiles. | `array` | `['justfile', '*.just']` |
+| `mk-targets-runner.excludedFoldersPatterns` | The glob patterns to exclude folders. | `array` | `['**/.git', '**/node_modules']` |
+| `mk-targets-runner.enableInlineTargetRunner` | Enable inline target runner. | `boolean` | `True` |
 
 <!-- END_CONFIG_TABLE -->
 
@@ -50,3 +50,13 @@ Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
   - [ ] Linting
   - [ ] Configurations generation
 - [ ] Add tests
+nLanguage` since the extension should be activated for any targetfile type which is dynmically determined. This is not ideal since it will be activated for any file.
+- Add support for:
+  - [ ] Rakefile
+  - [ ] Python typer
+- Git hooks for:
+  - [ ] Tests
+  - [ ] Linting
+  - [ ] Configurations generation
+- [ ] Add tests
+- [ ] Add command for dry run

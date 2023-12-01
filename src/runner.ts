@@ -26,7 +26,6 @@ export class Runner {
   *getMatchedTargetsInText(
     text: string
   ): Iterable<{ targetName: string; comment: string; matchIndex: number }> {
-    // https://regex101.com/r/WZXw2l/1
     let match: RegExpExecArray | null;
     while ((match = this.targetRegexp.exec(text)) !== null) {
       yield {
@@ -41,13 +40,13 @@ export class Runner {
 const Make = new Runner(
   "make",
   "include",
-  String.raw`^(#(?<comment>[^\n]*)\n)?(?<targetName>[a-zA-Z0-9_-]+):`
+  String.raw`^((#\s*(?<comment>[^\n|\\]*)(?!\\$)\n)?)(?<!\\\n) *(?<targetName>[a-zA-Z0-9_-]+):` // https://regex101.com/r/BmPAG0/1
 );
 
 const Just = new Runner(
   "just",
   "!include",
-  String.raw`^(#(?<comment>[^\n]*)\n)?(?<targetName>[a-zA-Z0-9_-]+):`
+  String.raw`^(#(?<comment>[^\n]*)\n)?(?<targetName>[a-zA-Z0-9_-]+):` // TODO
 );
 
 export const allRunners = [Make, Just];

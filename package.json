@@ -39,7 +39,7 @@
       "properties": {
         "mk-targets-runner.command.make": {
           "type": "string",
-          "default": "make -f <fsPath> <name>",
+          "default": "make -C <dir> -f <fsPath> <name>",
           "markdownDescription": "The command to run makefiles targets.\n\n- `<fsPath>` will be replaced with the makefile path.\n- `<name>` will be replaced with the target name.\n- `<dir>` will be replaced with the makefile directory."
         },
         "mk-targets-runner.command.just": {
