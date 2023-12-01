@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 
 import * as utils from "./utils";
+import * as config from "./config";
 import { Runner } from "./runner";
 import { WorkspaceStateKey } from "./constants";
 
@@ -34,40 +35,46 @@ export class Target {
     this.comment = comment || "";
   }
 
-  get cmd(): string {
-    // get run command from settings
-    let command: string | undefined = vscode.workspace
-      .getConfiguration("mk-targets-runner.command")
-      .get(this.runner.cmd);
-    if (!command) {
-      // TODO: user friendly error message
-      throw new Error(`No command found for runner ${this.runner}`);
-    }
-
+  private _replacePlaceholdersInCmd(cmd: string): string {
     // replace placeholders with values
     for (const property in this) {
       if (this.hasOwnProperty(property)) {
         const placeholder = `<${property}>`;
         const value = this[property];
         if (typeof value === "string") {
-          command = command.replace(placeholder, value);
+          cmd = cmd.replace(placeholder, value);
         }
       }
     }
-    return command;
+    return cmd;
   }
 
-  run(context: vscode.ExtensionContext): void {
-    // add target to workspace state
-    context.workspaceState.update(WorkspaceStateKey.LastExecutedTarget, this);
+  get cmd(): string {
+    return this._replacePlaceholdersInCmd(config.getRunCmd(this.runner));
+  }
 
+  private _sendCmdToTerminal(cmd: string): void {
     // send command to terminal if it exists or create one and send command
     let terminal = vscode.window.activeTerminal;
     if (!terminal) {
       terminal = vscode.window.createTerminal();
     }
     terminal.show();
-    terminal.sendText(this.cmd);
+    terminal.sendText(cmd);
+  }
+
+  get dryRunCmd(): string {
+    return this._replacePlaceholdersInCmd(config.getDryRunCmd(this.runner));
+  }
+
+  run(context: vscode.ExtensionContext): void {
+    // add target to workspace state
+    context.workspaceState.update(WorkspaceStateKey.LastExecutedTarget, this);
+    this._sendCmdToTerminal(this.cmd);
+  }
+
+  dryRun(context: vscode.ExtensionContext): void {
+    this._sendCmdToTerminal(this.dryRunCmd);
   }
 }
 

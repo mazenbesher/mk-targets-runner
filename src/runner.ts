@@ -8,6 +8,7 @@ export class Runner {
   constructor(
     public cmd: string,
     public includeDirective: string,
+    public supportsDryRun: boolean,
     public targetCommentRegexpString: string
   ) {
     if (!targetCommentRegexpString.includes("?<comment>")) {
@@ -40,12 +41,14 @@ export class Runner {
 const Make = new Runner(
   "make",
   "include",
+  true,
   String.raw`^((#\s*(?<comment>[^\n|\\]*)(?!\\$)\n)?)(?<!\\\n) *(?<targetName>[a-zA-Z0-9_-]+):` // https://regex101.com/r/BmPAG0/1
 );
 
 const Just = new Runner(
   "just",
   "!include",
+  true,
   String.raw`^(#(?<comment>[^\n]*)\n)?(?<targetName>[a-zA-Z0-9_-]+):` // TODO
 );
 

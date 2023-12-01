@@ -5,18 +5,8 @@ import * as target from "./target";
 import * as utils from "./utils";
 import { Runner } from "./runner";
 
-class TargetCodeLens extends vscode.CodeLens {
-  constructor(
-    range: vscode.Range,
-    public target: target.Target,
-    command?: vscode.Command
-  ) {
-    super(range, command);
-  }
-}
-
 export class InlineTargetRunner implements vscode.CodeLensProvider {
-  private codeLenses: TargetCodeLens[] = [];
+  private codeLenses: vscode.CodeLens[] = [];
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
   public readonly onDidChangeCodeLenses: vscode.Event<void> =
@@ -55,12 +45,7 @@ export class InlineTargetRunner implements vscode.CodeLensProvider {
       comment,
       matchIndex,
     } of this.runner.getMatchedTargetsInText(text)) {
-      const matchPosition: vscode.Position = document.positionAt(
-        matchIndex + comment.length + 2
-        // TODO: why 2?
-        // Without comment.length, the codelens would appera at the comment line, not the target line
-      );
-      const line: vscode.TextLine = document.lineAt(matchPosition);
+      // create target
       const newTarget = new target.Target({
         cmd: targetName,
         dir: fileDir,
@@ -68,24 +53,31 @@ export class InlineTargetRunner implements vscode.CodeLensProvider {
         comment: comment,
         runner: this.runner,
       });
-      this.codeLenses.push(new TargetCodeLens(line.range, newTarget));
+
+      // get target line
+      const matchPosition: vscode.Position = document.positionAt(
+        matchIndex + comment.length + 2
+        // TODO: why 2?
+        // Without comment.length, the codelens would appera at the comment line, not the target line
+      );
+      const line: vscode.TextLine = document.lineAt(matchPosition);
+
+      // add run target code lens
+      const runTargetCommand: vscode.Command = {
+        title: "$(play) Run Target",
+        command: `mk-targets-runner.runTarget.${this.runner.cmd}`,
+        arguments: [newTarget],
+      };
+      this.codeLenses.push(new vscode.CodeLens(line.range, runTargetCommand));
+
+      // add dry run target code lens
+      const dryRunTargetCommand: vscode.Command = {
+        title: "$(dashboard) Dry Run Target",
+        command: `mk-targets-runner.dryRunTarget.${this.runner.cmd}`,
+        arguments: [newTarget],
+      };
+      this.codeLenses.push(new vscode.CodeLens(line.range, dryRunTargetCommand));
     }
     return this.codeLenses;
-  }
-
-  public resolveCodeLens(
-    codeLens: TargetCodeLens,
-    token: vscode.CancellationToken
-  ) {
-    if (!config.isInlinedRunnerEnabled()) {
-      return null;
-    }
-
-    codeLens.command = {
-      title: "$(play) Run Target",
-      command: `mk-targets-runner.runTarget.${this.runner.cmd}`,
-      arguments: [codeLens.target],
-    };
-    return codeLens;
   }
 }

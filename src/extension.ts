@@ -46,6 +46,14 @@ export function activate(context: vscode.ExtensionContext) {
         (tgt: Target) => tgt.run(context)
       )
     );
+
+    // dry run target
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        `mk-targets-runner.dryRunTarget.${runner.cmd}`,
+        (tgt: Target) => tgt.dryRun(context)
+      )
+    );
   }
 
   context.subscriptions.push(

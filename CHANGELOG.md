@@ -24,3 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Inline target runner with comments
+
+## [0.1.2] - 2023-12-01
+
+### Added
+
+- Inline dry-run

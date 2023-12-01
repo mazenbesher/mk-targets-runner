@@ -30,3 +30,25 @@ export const isInlinedRunnerEnabled = (): boolean => {
   }
   return isInlinedRunnerEnabled;
 };
+
+export const getRunCmd = (runner: Runner): string => {
+  const command: string | undefined = vscode.workspace
+    .getConfiguration("mk-targets-runner.command")
+    .get(runner.cmd);
+  if (!command) {
+    // TODO: user friendly error message
+    throw new Error(`No command found for runner ${runner.cmd}`);
+  }
+  return command;
+};
+
+export const getDryRunCmd = (runner: Runner): string => {
+  const dryrunCommand: string | undefined = vscode.workspace
+    .getConfiguration("mk-targets-runner.dryrun")
+    .get(runner.cmd);
+  if (!dryrunCommand) {
+    // TODO: user friendly error message
+    throw new Error(`No command found for runner ${runner.cmd}`);
+  }
+  return dryrunCommand;
+};

@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/mazenbesher/mk-targets-runner"
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -44,8 +44,18 @@
         },
         "mk-targets-runner.command.just": {
           "type": "string",
-          "default": "just -f <fsPath> <name>",
+          "default": "just -d <dir> -f <fsPath> <name>",
           "markdownDescription": "The command to run justfiles targets.\n\n- `<fsPath>` will be replaced with the justfile path.\n- `<name>` will be replaced with the target name.\n- `<dir>` will be replaced with the justfile directory."
+        },
+        "mk-targets-runner.dryrun.make": {
+          "type": "string",
+          "default": "make -C <dir> -f <fsPath> --dry-run <name>",
+          "markdownDescription": "The command to run makefiles targets in dry-run mode.\n\n- `<fsPath>` will be replaced with the makefile path.\n- `<name>` will be replaced with the target name.\n- `<dir>` will be replaced with the makefile directory."
+        },
+        "mk-targets-runner.dryrun.just": {
+          "type": "string",
+          "default": "just -d <dir> -f <fsPath> --dry-run <name>",
+          "markdownDescription": "The command to run justfiles targets in dry-run mode.\n\n- `<fsPath>` will be replaced with the justfile path.\n- `<name>` will be replaced with the target name.\n- `<dir>` will be replaced with the justfile directory."
         },
         "mk-targets-runner.filePattern.make": {
           "type": "array",
