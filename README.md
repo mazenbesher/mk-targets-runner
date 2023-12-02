@@ -52,7 +52,7 @@ Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
   - [ ] Linting
   - [ ] Configurations generation
 - [ ] Add tests
-
+- [ ] Inline hint to run targets in included file (from this file) with a quickpick menu to select the target from the included file
 # Useful links
 
 - [Codicon icon font](https://microsoft.github.io/vscode-codicons/dist/codicon.html)

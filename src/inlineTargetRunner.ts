@@ -64,7 +64,7 @@ export class InlineTargetRunner implements vscode.CodeLensProvider {
 
       // add run target code lens
       const runTargetCommand: vscode.Command = {
-        title: "$(play) Run Target",
+        title: "$(play) Run",
         command: `mk-targets-runner.runTarget.${this.runner.cmd}`,
         arguments: [newTarget],
       };
@@ -72,7 +72,7 @@ export class InlineTargetRunner implements vscode.CodeLensProvider {
 
       // add dry run target code lens
       const dryRunTargetCommand: vscode.Command = {
-        title: "$(dashboard) Dry Run Target",
+        title: "$(dashboard) Dry Run",
         command: `mk-targets-runner.dryRunTarget.${this.runner.cmd}`,
         arguments: [newTarget],
       };
