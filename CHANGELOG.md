@@ -30,3 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Inline dry-run
+
+## [0.1.3] - 2023-12-02
+
+### Added
+
+- Inline run for included files

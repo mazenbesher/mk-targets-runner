@@ -1,3 +1,9 @@
+export interface TargetMatch {
+  targetName: string;
+  comment: string;
+  index: number;
+}
+
 export class Runner {
   targetRegexp: RegExp;
 
@@ -24,15 +30,13 @@ export class Runner {
     this.targetRegexp = new RegExp(targetCommentRegexpString, "gmd"); // d: to get mache index
   }
 
-  *getMatchedTargetsInText(
-    text: string
-  ): Iterable<{ targetName: string; comment: string; matchIndex: number }> {
+  *getMatchedTargetsInText(text: string): Iterable<TargetMatch> {
     let match: RegExpExecArray | null;
     while ((match = this.targetRegexp.exec(text)) !== null) {
       yield {
         comment: match.groups?.["comment"] || "",
         targetName: match.groups?.["targetName"] || "",
-        matchIndex: match.index,
+        index: match.index,
       };
     }
   }

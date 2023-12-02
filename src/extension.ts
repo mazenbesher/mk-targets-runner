@@ -2,8 +2,9 @@ import * as vscode from "vscode";
 
 import * as config from "./config";
 import * as utils from "./utils";
-import * as quickPick from "./quickPick";
-import { Target } from "./target";
+import * as quickPickAllFiles from "./quickPick/allFiles";
+import * as quickPickIncludedFiles from "./quickPick/included";
+import { Target, IncludedTarget } from "./target";
 import { allRunners } from "./runner";
 import { WorkspaceStateKey } from "./constants";
 import { InlineTargetRunner } from "./inlineTargetRunner";
@@ -35,7 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         `mk-targets-runner.runTargetFromQuickPick.${runner.cmd}`,
-        async () => await quickPick.showQuickPick(context, runner)
+        async () => await quickPickAllFiles.show(context, runner)
       )
     );
 
@@ -47,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
       )
     );
 
-    // dry run target
+    // dry run target (used for the inline target runner)
     context.subscriptions.push(
       vscode.commands.registerCommand(
         `mk-targets-runner.dryRunTarget.${runner.cmd}`,
@@ -55,6 +56,26 @@ export function activate(context: vscode.ExtensionContext) {
       )
     );
   }
+
+  // show quick pick for targets from included file (used for the inline target runner)
+  context.subscriptions.push(
+    ...[
+      // selected target will be run
+      vscode.commands.registerCommand(
+        "mk-targets-runner.showIncludedTargets.run",
+        async (includedTargets: IncludedTarget[]) => {
+          quickPickIncludedFiles.show(context, includedTargets, "run");
+        }
+      ),
+      // selected target will be dry run
+      vscode.commands.registerCommand(
+        "mk-targets-runner.showIncludedTargets.dryRun",
+        async (includedTargets: IncludedTarget[]) => {
+          quickPickIncludedFiles.show(context, includedTargets, "dryRun");
+        }
+      ),
+    ]
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("mk-targets-runner.rerunLastTarget", () =>

@@ -1,19 +1,30 @@
+<div align="center">
+<img src="./icons/icon.png" height="96px"/>
+
 # Targets Runner
 
 Run targets from Makefiles and [justfiles](https://github.com/casey/just) in VSCode.
 Download from [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=mazenb.mk-targets-runner).
 
+</div>
+
 # Features
 
 ## Inline runner
 
-![](https://raw.githubusercontent.com/mazenbesher/mk-targets-runner/main/doc/inline-runner.png)
+![](./doc/inline-runner.png)
 
 Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
 
 ## Run targets from quickpick menu
 
-![](https://raw.githubusercontent.com/mazenbesher/mk-targets-runner/main/doc/demo.gif)
+![](./doc/demo.gif)
+
+## Run targets in included file
+
+From current file, with a quickpick menu to select the target from the included file.
+
+![](./doc/inline-included.gif)
 
 ## Other features
 
@@ -51,8 +62,11 @@ Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
   - [ ] Tests
   - [ ] Linting
   - [ ] Configurations generation
-- [ ] Add tests
-- [ ] Inline hint to run targets in included file (from this file) with a quickpick menu to select the target from the included file
+- [ ] WIP: Add tests
+- [ ] Add run target to the side instead of inline
+
 # Useful links
 
+- [Task Provider](https://code.visualstudio.com/api/extension-guides/task-provider)
 - [Codicon icon font](https://microsoft.github.io/vscode-codicons/dist/codicon.html)
+- [Testing Extensions](https://code.visualstudio.com/api/working-with-extensions/testing-extension)

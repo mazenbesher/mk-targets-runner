@@ -1,21 +1,11 @@
 import * as vscode from "vscode";
 
-import * as config from "./config";
-import * as utils from "./utils";
-import * as target from "./target";
-import { Runner } from "./runner";
-
-class QuickPickItemTarget implements vscode.QuickPickItem {
-  constructor(public target: target.Target) {}
-
-  get label(): string {
-    return `Run Target: ${this.target.name}`;
-  }
-
-  get description(): string {
-    return this.target.comment;
-  }
-}
+import * as config from "../config";
+import * as utils from "../utils";
+import * as target from "../target";
+import { Runner } from "../runner";
+import { QuickPickItemTarget } from "./QuickPickItemTarget";
+import { createQuickPickForTargets } from "./common";
 
 const getRelativePathLabel = (uri: vscode.Uri): string => {
   let relativePathLabel: string = vscode.workspace.asRelativePath(uri);
@@ -34,9 +24,7 @@ const getRelativePathLabel = (uri: vscode.Uri): string => {
   return relativePathLabel;
 };
 
-const getItems = async (
-  runner: Runner
-): Promise<vscode.QuickPickItem[]> => {
+const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
   const filePattern: string[] = config.getFilePattern(runner);
   const excludedFoldersPatterns: string[] = config.getExcludedFolders();
 
@@ -63,14 +51,14 @@ const getItems = async (
       label: getRelativePathLabel(fileUri),
       kind: vscode.QuickPickItemKind.Separator,
     });
-    for await (const tgt of target.getTargetsInFile(fileUri, runner)) {
+    for await (const tgt of target.getAllTargetsInFile(fileUri, runner)) {
       items.push(new QuickPickItemTarget(tgt));
     }
   }
   return items;
 };
 
-export const showQuickPick = async (
+export const show = async (
   context: vscode.ExtensionContext,
   runner: Runner
 ) => {
@@ -92,17 +80,10 @@ export const showQuickPick = async (
     return;
   }
 
-  const quickPick = vscode.window.createQuickPick();
-  quickPick.items = items;
-  quickPick.onDidChangeSelection((selection) => {
-    if (selection[0]) {
-      const selectedItem = selection[0];
-      if (selectedItem instanceof QuickPickItemTarget) {
-        selectedItem.target.run(context);
-      }
-      quickPick.dispose(); // Disposes the quick pick after an item is selected
+  createQuickPickForTargets(
+    items,
+    (quickPickItemTarget: QuickPickItemTarget) => {
+      quickPickItemTarget.target.dryRun(context);
     }
-  });
-  quickPick.onDidHide(() => quickPick.dispose());
-  quickPick.show();
+  );
 };
