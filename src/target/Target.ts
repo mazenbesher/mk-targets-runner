@@ -6,9 +6,12 @@ import { Runner, TargetMatch } from "../runner";
 import * as utils from "../utils";
 
 export class Target {
-  uri: vscode.Uri;
+  doc: vscode.TextDocument;
   runner: Runner;
   match: TargetMatch;
+
+  // deduced from the doc
+  uri: vscode.Uri;
 
   // deduced from the uri
   fsPath: string;
@@ -19,21 +22,22 @@ export class Target {
   comment: string;
 
   constructor({
-    uri,
+    doc,
     runner,
     match,
   }: {
-    uri: vscode.Uri;
+    doc: vscode.TextDocument;
     runner: Runner;
     match: TargetMatch;
   }) {
+    this.doc = doc;
     this.match = match;
-    this.uri = uri;
     this.runner = runner;
 
     // deduced attrs
-    this.fsPath = uri.fsPath;
-    const { fileDir } = utils.getNameAndDirOfFile(uri);
+    this.uri = doc.uri;
+    this.fsPath = doc.uri.fsPath;
+    const { fileDir } = utils.getNameAndDirOfFile(doc.uri);
     this.dir = fileDir;
     this.name = match.targetName;
     this.comment = match.comment;
@@ -81,27 +85,47 @@ export class Target {
     this._sendCmdToTerminal(this.dryRunCmd);
   }
 
-  getTargetCommentLine(fileDoc: vscode.TextDocument): vscode.TextLine {
-    const matchPosition: vscode.Position = fileDoc.positionAt(this.match.index);
-    return fileDoc.lineAt(matchPosition);
+  getCommentLine(): vscode.TextLine {
+    const matchPosition: vscode.Position = this.doc.positionAt(
+      this.match.index
+    );
+    return this.doc.lineAt(matchPosition);
   }
 
-  getTargetLine(fileDoc: vscode.TextDocument): vscode.TextLine {
-    const matchPosition: vscode.Position = fileDoc.positionAt(
-      this.match.index + "# ".length + this.comment.length + "\n".length
-    );
-    return fileDoc.lineAt(matchPosition);
+  getStartPos(): vscode.Position {
+    return this.comment.length > 0
+      ? this.doc.positionAt(
+          // if there is a comment, then the target line is after the comment
+          this.match.index + "# ".length + this.comment.length + "\n".length
+        )
+      : this.doc.positionAt(this.match.index);
+  }
+
+  getLine(): vscode.TextLine {
+    return this.doc.lineAt(this.getStartPos());
+  }
+
+  getEndPos(): vscode.Position {
+    return this.getRange().end;
+  }
+
+  getRange(): vscode.Range {
+    // TODO: this is not fully corrent, for example if the line on which the target is defined starts with empty spaces!
+    const startPos = this.getStartPos();
+    const lineNumber: number = startPos.line;
+    const line: vscode.TextLine = this.doc.lineAt(lineNumber);
+    return line.range;
   }
 }
 
 export class IncludedTarget extends Target {
   constructor(
     public target: Target,
-    public parentUri: vscode.Uri, // the uri of the file in which the include directive is found
+    public parentDoc: vscode.TextDocument, // the file in which the include directive is found
     public directiveMatchIndex: number
   ) {
     super({
-      uri: parentUri, // this is important to run the included target correctly (specifically the corret fsPath!)
+      doc: parentDoc, // this is important to run the included target correctly (specifically the corret fsPath!)
       runner: target.runner,
       match: target.match,
     });

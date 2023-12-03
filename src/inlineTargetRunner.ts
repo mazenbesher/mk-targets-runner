@@ -40,7 +40,7 @@ export class InlineTargetRunner
       // direct targets
       for await (const directTarget of targetFile.getDirectTargets()) {
         const targetCommentLine: vscode.TextLine =
-          directTarget.getTargetCommentLine(doc);
+          directTarget.getCommentLine();
 
         // add run target code lens
         const runTargetCommand: vscode.Command = {
@@ -80,7 +80,11 @@ export class InlineTargetRunner
         const includedTargets: target.IncludedTarget[] = [];
         for await (const directTarget of includedTargetFile.getAllTargets()) {
           includedTargets.push(
-            new target.IncludedTarget(directTarget, fileUri, includeMatchIndex)
+            new target.IncludedTarget(
+              directTarget,
+              includedFileDoc,
+              includeMatchIndex
+            )
           );
         }
 

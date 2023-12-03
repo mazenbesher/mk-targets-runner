@@ -25,23 +25,17 @@ export class TargetFile {
     return undefined;
   }
 
-  static async createFromUri(
-    fileUri: vscode.Uri
-  ): Promise<TargetFile | undefined> {
+  /**
+   * If the file is a target file, then return a TargetFile object. Otherwise, return undefined.
+   */
+  static createFromDoc(fileDoc: vscode.TextDocument): TargetFile | undefined {
     // get file name e.g. 'Makefile' from file uri e.g. 'file:///home/user/Makefile'
-    const { fileName } = utils.getNameAndDirOfFile(fileUri);
+    const { fileName } = utils.getNameAndDirOfFile(fileDoc.uri);
     const runner = TargetFile.isTargetFile(fileName);
     if (runner) {
-      const fileDoc = await vscode.workspace.openTextDocument(fileUri);
       return new TargetFile(fileDoc, runner);
     }
     return undefined;
-  }
-
-  *getTargetsLines(): Generator<vscode.TextLine> {
-    for (const directTarget of this.getDirectTargets()) {
-      yield directTarget.getTargetLine(this.fileDoc);
-    }
   }
 
   /**
@@ -54,7 +48,7 @@ export class TargetFile {
       fileContent
     )) {
       yield new Target({
-        uri: this.fileDoc.uri,
+        doc: this.fileDoc,
         match: targetMatch,
         runner: this.runner,
       });
@@ -114,7 +108,7 @@ export class TargetFile {
   async *getIncludedTargets(): AsyncGenerator<IncludedTarget, void, void> {
     for await (const { includeMatchIndex } of this.getIncludedFiles({})) {
       for await (const target of this.getDirectTargets()) {
-        yield new IncludedTarget(target, this.fileDoc.uri, includeMatchIndex);
+        yield new IncludedTarget(target, this.fileDoc, includeMatchIndex);
       }
     }
   }
@@ -131,9 +125,19 @@ export class TargetFile {
     }
   }
 
-  getTargetAtLine(lineNumber: number): Target | undefined {
+  getTargetAtLine(line: vscode.TextLine): Target | undefined;
+  getTargetAtLine(lineNumber: number): Target | undefined;
+  getTargetAtLine(
+    lineOrLineNumber: number | vscode.TextLine
+  ): Target | undefined {
+    let lineNumber: number;
+    if (typeof lineOrLineNumber === "number") {
+      lineNumber = lineOrLineNumber;
+    } else {
+      lineNumber = lineOrLineNumber.lineNumber;
+    }
     for (const target of this.getDirectTargets()) {
-      const targetLine = target.getTargetLine(this.fileDoc);
+      const targetLine = target.getLine();
       if (targetLine.lineNumber === lineNumber) {
         return target;
       }

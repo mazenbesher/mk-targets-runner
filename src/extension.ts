@@ -9,11 +9,11 @@ import { Target, TargetFile } from "./target";
 import { allRunners } from "./runner";
 import { WorkspaceStateKey } from "./constants";
 import { InlineTargetRunner } from "./inlineTargetRunner";
-import { activeFileChanged } from "./events";
+import * as events from "./events";
 
 // src/gutter/editorLineNumberContext.ts
 interface EditorLineNumberContextParams {
-  lineNumber: number;
+  lineNumber: number; // Note: lineNumber is one indexed!
   uri: vscode.Uri;
 }
 
@@ -31,36 +31,25 @@ const rerunLastTarget = (context: vscode.ExtensionContext) => {
 
 // This method is called when your extension is activated
 export async function activate(context: vscode.ExtensionContext) {
-  // get active file
-  const activeFileUri: vscode.Uri | undefined =
-    vscode.window.activeTextEditor?.document.uri;
-  if (activeFileUri) {
-    await activeFileChanged(activeFileUri);
-  }
+  await events.addEventsSubscribtions(context);
 
   // register run target command from the gutter
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.runTargetFromGutter",
       async (params: EditorLineNumberContextParams) => {
-        // Note: lineNumber is one indexed!
-        const targetFile = await TargetFile.createFromUri(params.uri);
+        const activeDoc: vscode.TextDocument | undefined =
+          vscode.window.activeTextEditor?.document;
+        if (!activeDoc) {
+          return;
+        }
+        const targetFile = TargetFile.createFromDoc(activeDoc);
         if (targetFile !== undefined) {
           targetFile.getTargetAtLine(params.lineNumber - 1)?.run(context);
+          // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
         }
       }
     )
-  );
-
-  // change context based on the active file
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
-      if (!editor) {
-        return;
-      }
-      const activeFileUri: vscode.Uri = editor.document.uri;
-      await activeFileChanged(activeFileUri);
-    })
   );
 
   for (const runner of allRunners) {
