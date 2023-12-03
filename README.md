@@ -63,7 +63,7 @@ From current file, with a quickpick menu to select the target from the included 
   - [ ] Linting
   - [ ] Configurations generation
 - [ ] WIP: Add tests
-- [ ] Add run target to the side instead of inline
+- [ ] Add option to run targets from the gutter instead of inline codelens
 
 # Useful links
 

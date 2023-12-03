@@ -98,11 +98,16 @@ export class InlineTargetRunner
           doc.positionAt(includeMatchIndex)
         );
 
+        // tooltip: list of included targets
+        const tooltip: string =
+          "Targets: " + includedTargets.map((target) => target.name).join(", ");
+
         // add show included targets quick pick code lens (run)
         const showQuicPickForIncludeDirectiveCommandRun: vscode.Command = {
           title: "$(play) Run included target",
           command: `mk-targets-runner.showIncludedTargets.run`,
           arguments: [includedTargets],
+          tooltip,
         };
         codeLenses.push(
           new vscode.CodeLens(
@@ -116,6 +121,7 @@ export class InlineTargetRunner
           title: "$(dashboard) Dry Run included target",
           command: `mk-targets-runner.showIncludedTargets.dryRun`,
           arguments: [includedTargets],
+          tooltip,
         };
         codeLenses.push(
           new vscode.CodeLens(
