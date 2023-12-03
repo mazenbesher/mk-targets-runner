@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./icons/icon.png" height="96px"/>
+<img src="./icons/ext-icon.png" height="96px"/>
 
 # Targets Runner
 
@@ -71,5 +71,7 @@ From current file, with a quickpick menu to select the target from the included 
 # Useful links
 
 - [Task Provider](https://code.visualstudio.com/api/extension-guides/task-provider)
-- [Codicon icon font](https://microsoft.github.io/vscode-codicons/dist/codicon.html)
+- icons
+  - [Icons for Visual Studio Code](https://github.com/microsoft/vscode-icons)
+  - [Codicon icon font](https://microsoft.github.io/vscode-codicons/dist/codicon.html)
 - [Testing Extensions](https://code.visualstudio.com/api/working-with-extensions/testing-extension)
