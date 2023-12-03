@@ -4,10 +4,18 @@ import * as config from "./config";
 import * as utils from "./utils";
 import * as quickPickAllFiles from "./quickPick/allFiles";
 import * as quickPickIncludedFiles from "./quickPick/included";
-import { Target, IncludedTarget } from "./target";
+import { IncludedTarget } from "./target";
+import { Target, TargetFile } from "./target";
 import { allRunners } from "./runner";
 import { WorkspaceStateKey } from "./constants";
 import { InlineTargetRunner } from "./inlineTargetRunner";
+import { activeFileChanged } from "./events";
+
+// src/gutter/editorLineNumberContext.ts
+interface EditorLineNumberContextParams {
+  lineNumber: number;
+  uri: vscode.Uri;
+}
 
 const rerunLastTarget = (context: vscode.ExtensionContext) => {
   // get target from workspace state
@@ -22,7 +30,39 @@ const rerunLastTarget = (context: vscode.ExtensionContext) => {
 };
 
 // This method is called when your extension is activated
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+  // get active file
+  const activeFileUri: vscode.Uri | undefined =
+    vscode.window.activeTextEditor?.document.uri;
+  if (activeFileUri) {
+    await activeFileChanged(activeFileUri);
+  }
+
+  // register run target command from the gutter
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "mk-targets-runner.runTargetFromGutter",
+      async (params: EditorLineNumberContextParams) => {
+        // Note: lineNumber is one indexed!
+        const targetFile = await TargetFile.createFromUri(params.uri);
+        if (targetFile !== undefined) {
+          targetFile.getTargetAtLine(params.lineNumber - 1)?.run(context);
+        }
+      }
+    )
+  );
+
+  // change context based on the active file
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+      if (!editor) {
+        return;
+      }
+      const activeFileUri: vscode.Uri = editor.document.uri;
+      await activeFileChanged(activeFileUri);
+    })
+  );
+
   for (const runner of allRunners) {
     // register innline target runner
     vscode.languages.registerCodeLensProvider(

@@ -16,6 +16,10 @@ Download from [VSCode Marketplace](https://marketplace.visualstudio.com/items?it
 
 Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
 
+or from the gutter:
+
+![](./doc/run-target-from-gutter.png)
+
 ## Run targets from quickpick menu
 
 ![](./doc/demo.gif)
@@ -30,7 +34,7 @@ From current file, with a quickpick menu to select the target from the included 
 
 - Re-run last target
 - Support for [`justfile`-comments](https://github.com/casey/just#documentation-comments) (shown as description in the picker)
-- Run included files from correct file. 
+- Run included files from the correct file.
   - Example: if variable is defined in a file and then a target is included that uses this variable, the variable is not defined in the included file!
 
 # Configurations
@@ -63,7 +67,6 @@ From current file, with a quickpick menu to select the target from the included 
   - [ ] Linting
   - [ ] Configurations generation
 - [ ] WIP: Add tests
-- [ ] Add option to run targets from the gutter instead of inline codelens
 
 # Useful links
 

@@ -40,3 +40,10 @@ export const getPythonInterpreter = async (): Promise<string> => {
     throw new Error("Unable to access Python extension API");
   }
 };
+
+// function to convert a pattern to a regular expression, e.g. '*.mk' to '^.*\.mk$'
+export const patternToRegex = (pattern: string): RegExp => {
+  const escapedPattern = pattern.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"); // Escape special characters
+  const regexPattern = escapedPattern.replace(/\\\*/g, ".*"); // Convert '*' to '.*'
+  return new RegExp(`^${regexPattern}$`);
+};

@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/mazenbesher/mk-targets-runner"
   },
-  "version": "0.1.3",
+  "version": "0.1.4",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -20,6 +20,14 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "menus": {
+      "editor/lineNumber/context": [
+        {
+          "command": "mk-targets-runner.runTargetFromGutter",
+          "when": "mk-targets-runner.activeTargetFile && editorLineNumber in mk-targets-runner.targetLines"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "mk-targets-runner.runTargetFromQuickPick.make",
@@ -32,6 +40,10 @@
       {
         "command": "mk-targets-runner.rerunLastTarget",
         "title": "Targets Runner: Re-Run Last Executed Target"
+      },
+      {
+        "command": "mk-targets-runner.runTargetFromGutter",
+        "title": "Run Target"
       }
     ],
     "configuration": {

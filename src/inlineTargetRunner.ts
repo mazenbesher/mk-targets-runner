@@ -35,19 +35,12 @@ export class InlineTargetRunner
     return new Promise<vscode.CodeLens[]>(async (resolve, reject) => {
       const codeLenses: vscode.CodeLens[] = [];
       const fileUri = doc.uri;
+      const targetFile = new target.TargetFile(doc, this.runner);
 
       // direct targets
-      for await (const directTarget of target.getDirectTargetsInFile(
-        fileUri,
-        this.runner
-      )) {
-        // get target line
-        const matchPosition: vscode.Position = doc.positionAt(
-          directTarget.match.index + directTarget.comment.length + 2
-          // TODO: why 2?
-          // Without comment.length, the codelens would appera at the comment line, not the target line
-        );
-        const line: vscode.TextLine = doc.lineAt(matchPosition);
+      for await (const directTarget of targetFile.getDirectTargets()) {
+        const targetCommentLine: vscode.TextLine =
+          directTarget.getTargetCommentLine(doc);
 
         // add run target code lens
         const runTargetCommand: vscode.Command = {
@@ -55,7 +48,9 @@ export class InlineTargetRunner
           command: `mk-targets-runner.runTarget.${this.runner.cmd}`,
           arguments: [directTarget],
         };
-        codeLenses.push(new vscode.CodeLens(line.range, runTargetCommand));
+        codeLenses.push(
+          new vscode.CodeLens(targetCommentLine.range, runTargetCommand)
+        );
 
         // add dry run target code lens
         const dryRunTargetCommand: vscode.Command = {
@@ -63,7 +58,9 @@ export class InlineTargetRunner
           command: `mk-targets-runner.dryRunTarget.${this.runner.cmd}`,
           arguments: [directTarget],
         };
-        codeLenses.push(new vscode.CodeLens(line.range, dryRunTargetCommand));
+        codeLenses.push(
+          new vscode.CodeLens(targetCommentLine.range, dryRunTargetCommand)
+        );
       }
 
       // included targets
@@ -72,17 +69,16 @@ export class InlineTargetRunner
       for await (const {
         doc: includedFileDoc,
         includeMatchIndex,
-      } of target.getIncludedFilesInFile({
-        doc: fileDoc,
-        runner: this.runner,
+      } of targetFile.getIncludedFiles({
         recursive: false,
       })) {
         // get included targets in the included file
-        const includedTargets: target.IncludedTarget[] = [];
-        for await (const directTarget of target.getAllTargetsInFile(
-          includedFileDoc.uri,
+        const includedTargetFile = new target.TargetFile(
+          includedFileDoc,
           this.runner
-        )) {
+        );
+        const includedTargets: target.IncludedTarget[] = [];
+        for await (const directTarget of includedTargetFile.getAllTargets()) {
           includedTargets.push(
             new target.IncludedTarget(directTarget, fileUri, includeMatchIndex)
           );

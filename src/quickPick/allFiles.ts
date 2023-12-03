@@ -51,8 +51,11 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
       label: getRelativePathLabel(fileUri),
       kind: vscode.QuickPickItemKind.Separator,
     });
-    for await (const tgt of target.getAllTargetsInFile(fileUri, runner)) {
-      items.push(new QuickPickItemTarget(tgt));
+    const targetFile = await target.TargetFile.createFromUri(fileUri);
+    if (targetFile !== undefined) {
+      for await (const tgt of targetFile.getAllTargets()) {
+        items.push(new QuickPickItemTarget(tgt));
+      }
     }
   }
   return items;
