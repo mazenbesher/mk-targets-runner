@@ -106,8 +106,12 @@ export class TargetFile {
    * Retrieves only the targets that included from other files.
    */
   async *getIncludedTargets(): AsyncGenerator<IncludedTarget, void, void> {
-    for await (const { includeMatchIndex } of this.getIncludedFiles({})) {
-      for await (const target of this.getDirectTargets()) {
+    for await (const {
+      includeMatchIndex,
+      doc: includedFileDoc,
+    } of this.getIncludedFiles({})) {
+      const includedTargetFile = new TargetFile(includedFileDoc, this.runner);
+      for await (const target of includedTargetFile.getDirectTargets()) {
         yield new IncludedTarget(target, this.fileDoc, includeMatchIndex);
       }
     }

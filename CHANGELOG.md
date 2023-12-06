@@ -42,3 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Run target from gutter right-click menu
+- Inline run for included files
+
+## [0.1.5] - 2023-12-03
+
+### Fixed
+
+- Run included targets from parent file

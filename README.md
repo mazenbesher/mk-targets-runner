@@ -67,6 +67,7 @@ From current file, with a quickpick menu to select the target from the included 
   - [ ] Linting
   - [ ] Configurations generation
 - [ ] WIP: Add tests
+- [ ] Gutter for included files
 
 # Useful links
 

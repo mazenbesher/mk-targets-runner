@@ -64,13 +64,11 @@ export class InlineTargetRunner
       }
 
       // included targets
-      const fileDoc: vscode.TextDocument =
-        await vscode.workspace.openTextDocument(fileUri);
       for await (const {
         doc: includedFileDoc,
         includeMatchIndex,
       } of targetFile.getIncludedFiles({
-        recursive: false,
+        recursive: false, // since we want to display the targets on the same line
       })) {
         // get included targets in the included file
         const includedTargetFile = new target.TargetFile(
@@ -78,11 +76,12 @@ export class InlineTargetRunner
           this.runner
         );
         const includedTargets: target.IncludedTarget[] = [];
-        for await (const directTarget of includedTargetFile.getAllTargets()) {
+
+        for await (const tgtInIncluded of includedTargetFile.getAllTargets()) {
           includedTargets.push(
             new target.IncludedTarget(
-              directTarget,
-              includedFileDoc,
+              tgtInIncluded,
+              targetFile.fileDoc,
               includeMatchIndex
             )
           );
