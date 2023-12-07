@@ -5,11 +5,12 @@ import * as vscode from "vscode";
 import { IncludedTarget } from "../target";
 import { QuickPickItemTarget } from "./QuickPickItemTarget";
 import { createQuickPickForTargets } from "./common";
+import { Action } from "../constants";
 
 export const show = async (
   context: vscode.ExtensionContext,
   includedTargets: IncludedTarget[],
-  action: "run" | "dryRun"
+  action: Action
 ) => {
   // no targets found
   if (!includedTargets.length) {
@@ -31,11 +32,7 @@ export const show = async (
   createQuickPickForTargets(
     items,
     (quickPickItemTarget: QuickPickItemTarget) => {
-      if (action === "run") {
-        quickPickItemTarget.target.run(context);
-      } else if (action === "dryRun") {
-        quickPickItemTarget.target.dryRun(context);
-      }
+      quickPickItemTarget.target.execute(context, action);
     }
   );
 };

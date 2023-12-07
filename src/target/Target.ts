@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 
 import * as config from "../config";
-import { WorkspaceStateKey } from "../constants";
-import { Runner, TargetMatch } from "../runner";
 import * as utils from "../utils";
+import { WorkspaceStateKey, Action } from "../constants";
+import { Runner, TargetMatch } from "../runner";
 
 export class Target {
   doc: vscode.TextDocument;
@@ -83,6 +83,16 @@ export class Target {
 
   dryRun(context: vscode.ExtensionContext): void {
     this._sendCmdToTerminal(this.dryRunCmd);
+  }
+
+  execute(context: vscode.ExtensionContext, action: Action): void {
+    if (action === Action.Run) {
+      this.run(context);
+    } else if (action === Action.DryRun) {
+      this.dryRun(context);
+    } else {
+      throw new Error(`Unknown action: ${action}`);
+    }
   }
 
   getCommentLine(): vscode.TextLine {

@@ -4,18 +4,74 @@ import * as config from "./config";
 import * as utils from "./utils";
 import * as quickPickAllFiles from "./quickPick/allFiles";
 import * as quickPickIncludedFiles from "./quickPick/included";
+import * as events from "./events";
 import { IncludedTarget } from "./target";
 import { Target, TargetFile } from "./target";
 import { allRunners } from "./runner";
-import { WorkspaceStateKey } from "./constants";
+import { WorkspaceStateKey, Action } from "./constants";
 import { InlineTargetRunner } from "./inlineTargetRunner";
-import * as events from "./events";
 
 // src/gutter/editorLineNumberContext.ts
 interface EditorLineNumberContextParams {
   lineNumber: number; // Note: lineNumber is one indexed!
   uri: vscode.Uri;
 }
+
+const targetFromGutter =
+  (context: vscode.ExtensionContext, action: Action) =>
+  async (params: EditorLineNumberContextParams) => {
+    const activeDoc: vscode.TextDocument | undefined =
+      vscode.window.activeTextEditor?.document;
+    if (!activeDoc) {
+      return;
+    }
+    const targetFile = TargetFile.createFromDoc(activeDoc);
+    if (targetFile !== undefined) {
+      targetFile
+        .getTargetAtLine(params.lineNumber - 1)
+        ?.execute(context, action); // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
+    }
+  };
+
+const includedTargetFromGutter =
+  (context: vscode.ExtensionContext, action: Action) =>
+  async (params: EditorLineNumberContextParams) => {
+    const activeDoc: vscode.TextDocument | undefined =
+      vscode.window.activeTextEditor?.document;
+    if (!activeDoc) {
+      return;
+    }
+    const targetFile = TargetFile.createFromDoc(activeDoc);
+    if (targetFile !== undefined) {
+      // collect all possible included targets at that line
+      let includedTargets: IncludedTarget[] = [];
+      for await (const includedTargetFile of targetFile.getIncludedFilesAtLine(
+        params.lineNumber - 1 // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
+      )) {
+        if (includedTargetFile) {
+          includedTargets = [
+            ...includedTargets,
+            ...(await includedTargetFile.getAllTargetsFromParent()),
+          ];
+        }
+      }
+
+      // show quick pick to select which target to run
+      if (action === Action.Run) {
+        vscode.commands.executeCommand(
+          "mk-targets-runner.showIncludedTargets.run",
+          includedTargets
+        );
+      } else if (action === Action.DryRun) {
+        vscode.commands.executeCommand(
+          "mk-targets-runner.showIncludedTargets.dryRun",
+          includedTargets
+        );
+      } else {
+        throw new Error(`Unknown action: ${action}`);
+      }
+    }
+  };
 
 const rerunLastTarget = (context: vscode.ExtensionContext) => {
   // get target from workspace state
@@ -36,53 +92,28 @@ export async function activate(context: vscode.ExtensionContext) {
   // register run target command from the gutter
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "mk-targets-runner.runTargetFromGutter",
-      async (params: EditorLineNumberContextParams) => {
-        const activeDoc: vscode.TextDocument | undefined =
-          vscode.window.activeTextEditor?.document;
-        if (!activeDoc) {
-          return;
-        }
-        const targetFile = TargetFile.createFromDoc(activeDoc);
-        if (targetFile !== undefined) {
-          targetFile.getTargetAtLine(params.lineNumber - 1)?.run(context); // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
-        }
-      }
+      "mk-targets-runner.targetFromGutter.run",
+      targetFromGutter(context, Action.Run)
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "mk-targets-runner.targetFromGutter.dryrun",
+      targetFromGutter(context, Action.DryRun)
     )
   );
 
   // register run included target command from the gutter
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "mk-targets-runner.runIncludedTargetFromGutter",
-      async (params: EditorLineNumberContextParams) => {
-        const activeDoc: vscode.TextDocument | undefined =
-          vscode.window.activeTextEditor?.document;
-        if (!activeDoc) {
-          return;
-        }
-        const targetFile = TargetFile.createFromDoc(activeDoc);
-        if (targetFile !== undefined) {
-          // collect all possible included targets at that line
-          let includedTargets: IncludedTarget[] = [];
-          for await (const includedTargetFile of targetFile.getIncludedFilesAtLine(
-            params.lineNumber - 1 // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
-          )) {
-            if (includedTargetFile) {
-              includedTargets = [
-                ...includedTargets,
-                ...(await includedTargetFile.getAllTargetsFromParent()),
-              ];
-            }
-          }
-
-          // show quick pick to select which target to run
-          vscode.commands.executeCommand(
-            "mk-targets-runner.showIncludedTargets.run",
-            includedTargets
-          );
-        }
-      }
+      "mk-targets-runner.includedTargetFromGutter.run",
+      includedTargetFromGutter(context, Action.Run)
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "mk-targets-runner.includedTargetFromGutter.dryrun",
+      includedTargetFromGutter(context, Action.DryRun)
     )
   );
 
@@ -127,14 +158,14 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "mk-targets-runner.showIncludedTargets.run",
         async (includedTargets: IncludedTarget[]) => {
-          quickPickIncludedFiles.show(context, includedTargets, "run");
+          quickPickIncludedFiles.show(context, includedTargets, Action.Run);
         }
       ),
       // selected target will be dry run
       vscode.commands.registerCommand(
         "mk-targets-runner.showIncludedTargets.dryRun",
         async (includedTargets: IncludedTarget[]) => {
-          quickPickIncludedFiles.show(context, includedTargets, "dryRun");
+          quickPickIncludedFiles.show(context, includedTargets, Action.DryRun);
         }
       ),
     ]

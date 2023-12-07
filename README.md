@@ -41,16 +41,16 @@ From current file, with a quickpick menu to select the target from the included 
 
 <!-- START_CONFIG_TABLE -->
 
-| Property | Description | Type | Default Value |
-| - | - | - | - |
-| `mk-targets-runner.command.make` | The command to run makefiles targets. | `string` | `make -C <dir> -f <fsPath> <name>` |
-| `mk-targets-runner.command.just` | The command to run justfiles targets. | `string` | `just -d <dir> -f <fsPath> <name>` |
-| `mk-targets-runner.dryrun.make` | The command to run makefiles targets in dry-run mode. | `string` | `make -C <dir> -f <fsPath> --dry-run <name>` |
-| `mk-targets-runner.dryrun.just` | The command to run justfiles targets in dry-run mode. | `string` | `just -d <dir> -f <fsPath> --dry-run <name>` |
-| `mk-targets-runner.filePattern.make` | The glob patterns to match makefiles. | `array` | `['Makefile', '*.mk']` |
-| `mk-targets-runner.filePattern.just` | The glob patterns to match justfiles. | `array` | `['justfile', '*.just']` |
-| `mk-targets-runner.excludedFoldersPatterns` | The glob patterns to exclude folders. | `array` | `['**/.git', '**/node_modules']` |
-| `mk-targets-runner.enableInlineTargetRunner` | Enable inline target runner. | `boolean` | `True` |
+| Property                                     | Description                                           | Type      | Default Value                                |
+| -------------------------------------------- | ----------------------------------------------------- | --------- | -------------------------------------------- |
+| `mk-targets-runner.command.make`             | The command to run makefiles targets.                 | `string`  | `make -C <dir> -f <fsPath> <name>`           |
+| `mk-targets-runner.command.just`             | The command to run justfiles targets.                 | `string`  | `just -d <dir> -f <fsPath> <name>`           |
+| `mk-targets-runner.dryrun.make`              | The command to run makefiles targets in dry-run mode. | `string`  | `make -C <dir> -f <fsPath> --dry-run <name>` |
+| `mk-targets-runner.dryrun.just`              | The command to run justfiles targets in dry-run mode. | `string`  | `just -d <dir> -f <fsPath> --dry-run <name>` |
+| `mk-targets-runner.filePattern.make`         | The glob patterns to match makefiles.                 | `array`   | `['Makefile', '*.mk']`                       |
+| `mk-targets-runner.filePattern.just`         | The glob patterns to match justfiles.                 | `array`   | `['justfile', '*.just']`                     |
+| `mk-targets-runner.excludedFoldersPatterns`  | The glob patterns to exclude folders.                 | `array`   | `['**/.git', '**/node_modules']`             |
+| `mk-targets-runner.enableInlineTargetRunner` | Enable inline target runner.                          | `boolean` | `True`                                       |
 
 <!-- END_CONFIG_TABLE -->
 
@@ -67,7 +67,7 @@ From current file, with a quickpick menu to select the target from the included 
   - [ ] Linting
   - [ ] Configurations generation
 - [ ] WIP: Add tests
-- [ ] Gutter dry run
+- [ ] Auto increment version with commit and auto append commit messages to `CHANGELOG.md`
 
 # Useful links
 

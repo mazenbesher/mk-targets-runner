@@ -23,11 +23,19 @@
     "menus": {
       "editor/lineNumber/context": [
         {
-          "command": "mk-targets-runner.runTargetFromGutter",
+          "command": "mk-targets-runner.targetFromGutter.run",
           "when": "mk-targets-runner.activeTargetFile && editorLineNumber in mk-targets-runner.targetLines"
         },
         {
-          "command": "mk-targets-runner.runIncludedTargetFromGutter",
+          "command": "mk-targets-runner.targetFromGutter.dryrun",
+          "when": "mk-targets-runner.activeTargetFile && editorLineNumber in mk-targets-runner.targetLines"
+        },
+        {
+          "command": "mk-targets-runner.includedTargetFromGutter.run",
+          "when": "mk-targets-runner.activeTargetFile && editorLineNumber in mk-targets-runner.includeLines"
+        },
+        {
+          "command": "mk-targets-runner.includedTargetFromGutter.dryrun",
           "when": "mk-targets-runner.activeTargetFile && editorLineNumber in mk-targets-runner.includeLines"
         }
       ]
@@ -46,12 +54,20 @@
         "title": "Targets Runner: Re-Run Last Executed Target"
       },
       {
-        "command": "mk-targets-runner.runTargetFromGutter",
+        "command": "mk-targets-runner.targetFromGutter.run",
         "title": "Run Target"
       },
       {
-        "command": "mk-targets-runner.runIncludedTargetFromGutter",
+        "command": "mk-targets-runner.targetFromGutter.dryrun",
+        "title": "Dry Run Target"
+      },
+      {
+        "command": "mk-targets-runner.includedTargetFromGutter.run",
         "title": "Run Included Target"
+      },
+      {
+        "command": "mk-targets-runner.includedTargetFromGutter.dryrun",
+        "title": "Dry Run Included Target"
       }
     ],
     "configuration": {
