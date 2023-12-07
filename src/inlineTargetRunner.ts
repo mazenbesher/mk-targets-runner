@@ -80,7 +80,7 @@ export class InlineTargetRunner
           includedTargets.push(
             new target.IncludedTarget(
               tgtInIncluded,
-              targetFile.fileDoc,
+              targetFile.doc,
               includedTargetFile.includeMatchIndex
             )
           );

@@ -7,7 +7,7 @@ import { Target, IncludedTarget } from "./index";
 import { allRunners, Runner } from "../runner";
 
 export class TargetFile {
-  constructor(public fileDoc: vscode.TextDocument, public runner: Runner) {}
+  constructor(public doc: vscode.TextDocument, public runner: Runner) {}
 
   /**
    * If the file is a target file, then return the runner that matches the file. Otherwise, return undefined.
@@ -43,12 +43,12 @@ export class TargetFile {
    */
   *getDirectTargets(): Generator<Target, void, void> {
     // const fileContent = await getRenderedFileContent(fileDoc, runner);
-    const fileContent = this.fileDoc.getText();
+    const fileContent = this.doc.getText();
     for (const targetMatch of this.runner.getMatchedTargetsInText(
       fileContent
     )) {
       yield new Target({
-        doc: this.fileDoc,
+        doc: this.doc,
         match: targetMatch,
         runner: this.runner,
       });
@@ -69,12 +69,12 @@ export class TargetFile {
 
     // if the targetfile has an include statement, then replace the content with the included file (verbatim)
     // `previouslyIncludedPaths` is used to avoid infinite loop if the included file has an include statement to the current file
-    const fileDir = path.dirname(this.fileDoc.uri.fsPath);
+    const fileDir = path.dirname(this.doc.uri.fsPath);
     const includeRegex = new RegExp(
       String.raw`^${this.runner.includeDirective}\s(.*)$`,
       "gm"
     );
-    let fileContent = this.fileDoc.getText();
+    let fileContent = this.doc.getText();
     let match;
     while ((match = includeRegex.exec(fileContent)) !== null) {
       // get include pattern e.g. 'file.mk', '*.mk', 'dir/*.mk', 'dir/**/*.mk'
@@ -115,7 +115,7 @@ export class TargetFile {
       for await (const target of includedTargetFile.getDirectTargets()) {
         yield new IncludedTarget(
           target,
-          this.fileDoc,
+          this.doc,
           includedTargetFile.includeMatchIndex
         );
       }
@@ -161,10 +161,10 @@ export class TargetFile {
  */
 export class IncludedTargetFile extends TargetFile {
   constructor(
-    public fileDoc: vscode.TextDocument,
+    public doc: vscode.TextDocument,
     public runner: Runner,
     public includeMatchIndex: number
   ) {
-    super(fileDoc, runner);
+    super(doc, runner);
   }
 }
