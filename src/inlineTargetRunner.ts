@@ -34,7 +34,6 @@ export class InlineTargetRunner
 
     return new Promise<vscode.CodeLens[]>(async (resolve, reject) => {
       const codeLenses: vscode.CodeLens[] = [];
-      const fileUri = doc.uri;
       const targetFile = new target.TargetFile(doc, this.runner);
 
       // direct targets
@@ -64,17 +63,17 @@ export class InlineTargetRunner
       }
 
       // included targets
-      for await (const {
-        doc: includedFileDoc,
-        includeMatchIndex,
-      } of targetFile.getIncludedFiles({
+      const targetsPerLineNumber: Map<
+        number,
+        {
+          line: vscode.TextLine;
+          includedTargets: target.IncludedTarget[];
+        }
+      > = new Map();
+      for await (const includedTargetFile of targetFile.getIncludedFiles({
         recursive: false, // since we want to display the targets on the same line
       })) {
         // get included targets in the included file
-        const includedTargetFile = new target.TargetFile(
-          includedFileDoc,
-          this.runner
-        );
         const includedTargets: target.IncludedTarget[] = [];
 
         for await (const tgtInIncluded of includedTargetFile.getAllTargets()) {
@@ -82,7 +81,7 @@ export class InlineTargetRunner
             new target.IncludedTarget(
               tgtInIncluded,
               targetFile.fileDoc,
-              includeMatchIndex
+              includedTargetFile.includeMatchIndex
             )
           );
         }
@@ -94,9 +93,29 @@ export class InlineTargetRunner
 
         // get the include file line
         const line: vscode.TextLine = doc.lineAt(
-          doc.positionAt(includeMatchIndex)
+          doc.positionAt(includedTargetFile.includeMatchIndex)
         );
 
+        // add included targets to the map for the line number
+        const lineNumber = line.lineNumber;
+        if (targetsPerLineNumber.has(lineNumber)) {
+          // since an include directive could be a glob to multiple files, we could have targets from multiple files on the same line!
+          targetsPerLineNumber
+            .get(lineNumber)
+            ?.includedTargets.push(...includedTargets);
+        } else {
+          targetsPerLineNumber.set(lineNumber, {
+            line,
+            includedTargets,
+          });
+        }
+      }
+
+      // for each line, show included targets with files
+      for (const [
+        lineNumber,
+        { includedTargets, line },
+      ] of targetsPerLineNumber) {
         // tooltip: list of included targets
         const tooltip: string =
           "Targets: " + includedTargets.map((target) => target.name).join(", ");

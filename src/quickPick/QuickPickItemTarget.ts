@@ -2,10 +2,11 @@ import * as vscode from "vscode";
 import * as target from "../target";
 
 export class QuickPickItemTarget implements vscode.QuickPickItem {
-  constructor(public target: target.Target) { }
+  constructor(public target: target.Target) {}
 
   get label(): string {
-    return `Run Target: ${this.target.name}`;
+    // return `Run Target: ${this.target.name}`;
+    return this.target.name;
   }
 
   get description(): string {

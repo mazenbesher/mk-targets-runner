@@ -61,11 +61,7 @@ export class TargetFile {
   }: {
     recursive?: boolean;
     previouslyIncludedPaths?: string[];
-  }): AsyncGenerator<
-    { doc: vscode.TextDocument; includeMatchIndex: number },
-    void,
-    void
-  > {
+  }): AsyncGenerator<IncludedTargetFile, void, void> {
     // default value for previouslyIncludedPaths is empty array
     if (previouslyIncludedPaths === undefined) {
       previouslyIncludedPaths = [];
@@ -81,18 +77,26 @@ export class TargetFile {
     let fileContent = this.fileDoc.getText();
     let match;
     while ((match = includeRegex.exec(fileContent)) !== null) {
-      const includeFile: string = match[1];
-      const includePath: string = path.join(fileDir, includeFile);
-      const includePathAbs: string = path.resolve(includePath);
-      if (!previouslyIncludedPaths.includes(includePathAbs)) {
-        previouslyIncludedPaths.push(includePathAbs);
+      // get include pattern e.g. 'file.mk', '*.mk', 'dir/*.mk', 'dir/**/*.mk'
+      const includePattern: vscode.GlobPattern = match[1];
+
+      // relative to the current file directory
+      const relativePattern: vscode.RelativePattern =
+        new vscode.RelativePattern(fileDir, includePattern);
+
+      // find all files that match this relative pattern
+      for (const includedFileUri of await vscode.workspace.findFiles(
+        relativePattern
+      )) {
         const includedDoc: vscode.TextDocument =
-          await vscode.workspace.openTextDocument(includePathAbs);
-        yield {
-          doc: includedDoc,
-          includeMatchIndex: match.index,
-        };
-        if (recursive) {
+          await vscode.workspace.openTextDocument(includedFileUri);
+        yield new IncludedTargetFile(includedDoc, this.runner, match.index);
+
+        if (
+          recursive &&
+          !previouslyIncludedPaths.includes(includedFileUri.toString())
+        ) {
+          previouslyIncludedPaths.push(includedFileUri.toString());
           yield* new TargetFile(includedDoc, this.runner).getIncludedFiles({
             recursive,
             previouslyIncludedPaths,
@@ -106,13 +110,14 @@ export class TargetFile {
    * Retrieves only the targets that included from other files.
    */
   async *getIncludedTargets(): AsyncGenerator<IncludedTarget, void, void> {
-    for await (const {
-      includeMatchIndex,
-      doc: includedFileDoc,
-    } of this.getIncludedFiles({})) {
-      const includedTargetFile = new TargetFile(includedFileDoc, this.runner);
+    for await (const includedTargetFile of this.getIncludedFiles({})) {
+      // const includedTargetFile = new TargetFile(includedTargetFile.fileDoc, this.runner);
       for await (const target of includedTargetFile.getDirectTargets()) {
-        yield new IncludedTarget(target, this.fileDoc, includeMatchIndex);
+        yield new IncludedTarget(
+          target,
+          this.fileDoc,
+          includedTargetFile.includeMatchIndex
+        );
       }
     }
   }
@@ -147,5 +152,19 @@ export class TargetFile {
       }
     }
     return undefined;
+  }
+}
+
+/**
+ * Represents a target that is included from another file.
+ * Only difference from TargetFile is the additional `includeMatchIndex` property, which is the index of the include directive in the parent file.
+ */
+export class IncludedTargetFile extends TargetFile {
+  constructor(
+    public fileDoc: vscode.TextDocument,
+    public runner: Runner,
+    public includeMatchIndex: number
+  ) {
+    super(fileDoc, runner);
   }
 }
