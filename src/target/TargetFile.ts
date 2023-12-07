@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
 
 import * as utils from "../utils";
 import * as config from "../config";
@@ -77,6 +78,8 @@ export class TargetFile {
     let fileContent = this.doc.getText();
     let match;
     while ((match = includeRegex.exec(fileContent)) !== null) {
+      const includedFiles: vscode.Uri[] = [];
+
       // get include pattern e.g. 'file.mk', '*.mk', 'dir/*.mk', 'dir/**/*.mk'
       const includePattern: vscode.GlobPattern = match[1];
 
@@ -84,10 +87,31 @@ export class TargetFile {
       const relativePattern: vscode.RelativePattern =
         new vscode.RelativePattern(fileDir, includePattern);
 
-      // find all files that match this relative pattern
       for (const includedFileUri of await vscode.workspace.findFiles(
         relativePattern
       )) {
+        includedFiles.push(includedFileUri);
+      }
+
+      // or from resolved relative pattern
+
+      // resolve any relative path in the include pattern
+      // e.g. dir1/dir2/.. -> dir1
+      const includePatternResolved: vscode.GlobPattern = path.resolve(
+        fileDir,
+        includePattern
+      );
+
+      // check if valid file path within the workspace
+      if (fs.existsSync(includePatternResolved)) {
+        const includedFileUri: vscode.Uri = vscode.Uri.file(
+          includePatternResolved
+        );
+        includedFiles.push(includedFileUri);
+      }
+
+      // find all files that match this relative pattern
+      for (const includedFileUri of includedFiles) {
         const includedDoc: vscode.TextDocument =
           await vscode.workspace.openTextDocument(includedFileUri);
         yield new IncludedTargetFile(
