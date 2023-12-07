@@ -15,11 +15,22 @@ const activeEditorChanged = async (
   const isTargetFile = targetFile !== undefined;
 
   const oneIndexedTargetsLinesNumbers: number[] = [];
+  const ondIndexedIncludeLinesNumbers: number[] = [];
   if (isTargetFile) {
     for (const directTarget of targetFile.getDirectTargets()) {
       const targetLine: vscode.TextLine = directTarget.getLine();
       oneIndexedTargetsLinesNumbers.push(targetLine.lineNumber + 1);
     }
+
+    for await (const includedTargetFile of targetFile.getIncludedFiles({
+      recursive: false,
+    })) {
+      const includeLine: vscode.TextLine = targetFile.doc.lineAt(
+        targetFile.doc.positionAt(includedTargetFile.includeMatchIndex)
+      );
+      ondIndexedIncludeLinesNumbers.push(includeLine.lineNumber + 1);
+    }
+
     await updateDecorations(context, targetFile);
   }
 
@@ -34,6 +45,12 @@ const activeEditorChanged = async (
     "setContext",
     "mk-targets-runner.targetLines",
     oneIndexedTargetsLinesNumbers // e.g. [1, 6, 8]
+  );
+
+  vscode.commands.executeCommand(
+    "setContext",
+    "mk-targets-runner.includeLines",
+    ondIndexedIncludeLinesNumbers
   );
 };
 

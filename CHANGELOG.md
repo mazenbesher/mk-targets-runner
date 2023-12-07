@@ -55,3 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Handle glob patterns in include directives
+
+## [0.1.7] - 2023-12-07
+
+### Added
+
+- Run included targets from gutter

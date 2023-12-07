@@ -90,7 +90,12 @@ export class TargetFile {
       )) {
         const includedDoc: vscode.TextDocument =
           await vscode.workspace.openTextDocument(includedFileUri);
-        yield new IncludedTargetFile(includedDoc, this.runner, match.index);
+        yield new IncludedTargetFile(
+          includedDoc,
+          this.runner,
+          match.index,
+          this
+        );
 
         if (
           recursive &&
@@ -153,18 +158,73 @@ export class TargetFile {
     }
     return undefined;
   }
+
+  /**
+   * Note: since the include directive could be a glob to multiple files, we could have targets from multiple files on the same line!
+   */
+  async *getIncludedFilesAtLine(
+    lineNumber: number
+  ): AsyncGenerator<IncludedTargetFile | undefined> {
+    const includedFiles: IncludedTargetFile[] = [];
+    for await (const includedTargetFile of this.getIncludedFiles({
+      recursive: false,
+    })) {
+      const includeDirectiveLine = includedTargetFile.getIncludeDirectiveLine();
+      if (includeDirectiveLine.lineNumber === lineNumber) {
+        yield includedTargetFile;
+      }
+    }
+  }
 }
 
 /**
  * Represents a target that is included from another file.
- * Only difference from TargetFile is the additional `includeMatchIndex` property, which is the index of the include directive in the parent file.
+ * The `includeMatchIndex` property is the index of the include directive in the parent file.
  */
 export class IncludedTargetFile extends TargetFile {
   constructor(
     public doc: vscode.TextDocument,
     public runner: Runner,
-    public includeMatchIndex: number
+    public includeMatchIndex: number,
+    public parentTargetFile: TargetFile
   ) {
     super(doc, runner);
+  }
+
+  getIncludeDirectiveStartPos(): vscode.Position {
+    return this.parentTargetFile.doc.positionAt(this.includeMatchIndex);
+  }
+
+  /**
+   *
+   * @returns the range of the include directive in the parent file
+   */
+  getIncludeDirectiveRange(): vscode.Range {
+    const startPos = this.getIncludeDirectiveStartPos();
+    const lineNumber: number = startPos.line;
+    const line: vscode.TextLine = this.parentTargetFile.doc.lineAt(lineNumber);
+    return line.range;
+  }
+
+  getIncludeDirectiveLine(): vscode.TextLine {
+    return this.parentTargetFile.doc.lineAt(this.getIncludeDirectiveStartPos());
+  }
+
+  /**
+   * Retrieves all targets in a file from the parent prespective
+   */
+  async getAllTargetsFromParent(): Promise<IncludedTarget[]> {
+    const includedTargets: IncludedTarget[] = [];
+
+    for await (const tgtInIncluded of this.getAllTargets()) {
+      includedTargets.push(
+        new IncludedTarget(
+          tgtInIncluded,
+          this.parentTargetFile.doc,
+          this.includeMatchIndex
+        )
+      );
+    }
+    return includedTargets;
   }
 }

@@ -74,17 +74,8 @@ export class InlineTargetRunner
         recursive: false, // since we want to display the targets on the same line
       })) {
         // get included targets in the included file
-        const includedTargets: target.IncludedTarget[] = [];
-
-        for await (const tgtInIncluded of includedTargetFile.getAllTargets()) {
-          includedTargets.push(
-            new target.IncludedTarget(
-              tgtInIncluded,
-              targetFile.doc,
-              includedTargetFile.includeMatchIndex
-            )
-          );
-        }
+        const includedTargets: target.IncludedTarget[] =
+          await includedTargetFile.getAllTargetsFromParent();
 
         // if no targets found, skip
         if (!includedTargets.length) {

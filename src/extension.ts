@@ -45,8 +45,42 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         const targetFile = TargetFile.createFromDoc(activeDoc);
         if (targetFile !== undefined) {
-          targetFile.getTargetAtLine(params.lineNumber - 1)?.run(context);
-          // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
+          targetFile.getTargetAtLine(params.lineNumber - 1)?.run(context); // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
+        }
+      }
+    )
+  );
+
+  // register run included target command from the gutter
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "mk-targets-runner.runIncludedTargetFromGutter",
+      async (params: EditorLineNumberContextParams) => {
+        const activeDoc: vscode.TextDocument | undefined =
+          vscode.window.activeTextEditor?.document;
+        if (!activeDoc) {
+          return;
+        }
+        const targetFile = TargetFile.createFromDoc(activeDoc);
+        if (targetFile !== undefined) {
+          // collect all possible included targets at that line
+          let includedTargets: IncludedTarget[] = [];
+          for await (const includedTargetFile of targetFile.getIncludedFilesAtLine(
+            params.lineNumber - 1 // -1 since lineNumber is one indexed but vscode.LineNumber is zero indexed
+          )) {
+            if (includedTargetFile) {
+              includedTargets = [
+                ...includedTargets,
+                ...(await includedTargetFile.getAllTargetsFromParent()),
+              ];
+            }
+          }
+
+          // show quick pick to select which target to run
+          vscode.commands.executeCommand(
+            "mk-targets-runner.showIncludedTargets.run",
+            includedTargets
+          );
         }
       }
     )

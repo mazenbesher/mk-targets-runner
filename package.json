@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/mazenbesher/mk-targets-runner"
   },
-  "version": "0.1.6",
+  "version": "0.1.7",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -25,6 +25,10 @@
         {
           "command": "mk-targets-runner.runTargetFromGutter",
           "when": "mk-targets-runner.activeTargetFile && editorLineNumber in mk-targets-runner.targetLines"
+        },
+        {
+          "command": "mk-targets-runner.runIncludedTargetFromGutter",
+          "when": "mk-targets-runner.activeTargetFile && editorLineNumber in mk-targets-runner.includeLines"
         }
       ]
     },
@@ -44,6 +48,10 @@
       {
         "command": "mk-targets-runner.runTargetFromGutter",
         "title": "Run Target"
+      },
+      {
+        "command": "mk-targets-runner.runIncludedTargetFromGutter",
+        "title": "Run Included Target"
       }
     ],
     "configuration": {

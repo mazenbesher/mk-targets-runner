@@ -17,3 +17,6 @@ include makefiles/subfolder/*.mk
 
 # should be targets from mk2, mk3, mk4 and mk5
 include makefiles/**/*.mk
+
+# all targets!
+include **/*.mk
