@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import * as config from "./config";
 import * as target from "./target";
 import { Runner } from "./runner";
+import { InlineRunnerLocation } from "./constants";
 
 export class InlineTargetRunner
   implements vscode.CodeLensProvider<vscode.CodeLens>
@@ -38,8 +39,16 @@ export class InlineTargetRunner
 
       // direct targets
       for await (const directTarget of targetFile.getDirectTargets()) {
-        const targetCommentLine: vscode.TextLine =
-          directTarget.getCommentLine();
+        // where to show the code lens (inline runner location)
+        let inlineRunnerLine: vscode.TextLine = directTarget.getLine();
+        switch (config.getInlineRunnerLocation()) {
+          case InlineRunnerLocation.Target:
+            inlineRunnerLine = directTarget.getLine();
+            break;
+          case InlineRunnerLocation.Comment:
+            inlineRunnerLine = directTarget.getCommentLine();
+            break;
+        }
 
         // add run target code lens
         const runTargetCommand: vscode.Command = {
@@ -48,7 +57,7 @@ export class InlineTargetRunner
           arguments: [directTarget],
         };
         codeLenses.push(
-          new vscode.CodeLens(targetCommentLine.range, runTargetCommand)
+          new vscode.CodeLens(inlineRunnerLine.range, runTargetCommand)
         );
 
         // add dry run target code lens
@@ -58,7 +67,7 @@ export class InlineTargetRunner
           arguments: [directTarget],
         };
         codeLenses.push(
-          new vscode.CodeLens(targetCommentLine.range, dryRunTargetCommand)
+          new vscode.CodeLens(inlineRunnerLine.range, dryRunTargetCommand)
         );
       }
 

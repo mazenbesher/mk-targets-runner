@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { Runner } from "./runner";
+import { InlineRunnerLocation } from "./constants";
 
 export const getFilePattern = (runner: Runner): string[] => {
   const filePattern: string[] | undefined = vscode.workspace
@@ -51,4 +52,14 @@ export const getDryRunCmd = (runner: Runner): string => {
     throw new Error(`No command found for runner ${runner.cmd}`);
   }
   return dryrunCommand;
+};
+
+export const getInlineRunnerLocation = (): InlineRunnerLocation => {
+  const loc: InlineRunnerLocation | undefined = vscode.workspace
+    .getConfiguration("mk-targets-runner")
+    .get("inlineRunnerLocation");
+  if (!loc) {
+    throw new Error(`No inlineRunnerLocation found`);
+  }
+  return loc;
 };

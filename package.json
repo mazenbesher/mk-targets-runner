@@ -121,6 +121,19 @@
           "type": "boolean",
           "default": true,
           "description": "Enable inline target runner."
+        },
+        "mk-targets-runner.inlineRunnerLocation": {
+          "type": "string",
+          "default": "target",
+          "enum": [
+            "target",
+            "comment"
+          ],
+          "description": "Where to show the inline target runner.",
+          "enumDescriptions": [
+            "Show the inline runner in the target line.",
+            "Show the inline runner in the comment line."
+          ]
         }
       }
     }
