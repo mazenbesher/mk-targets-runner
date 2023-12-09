@@ -62,3 +62,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Run included targets from gutter
 - Dry run targets and included targets from gutter
+
+## [0.1.8] - 2023-12-09
+
+### Fixed
+
+- Glob patterns to parent paths
+
+### Added
+
+- Control inline runner location
