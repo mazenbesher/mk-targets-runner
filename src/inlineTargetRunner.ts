@@ -22,7 +22,7 @@ export class InlineTargetRunner
 
   public provideCodeLenses(
     doc: vscode.TextDocument,
-    token: vscode.CancellationToken
+    _: vscode.CancellationToken
   ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
     if (!config.isInlinedRunnerEnabled()) {
       return [];
@@ -33,7 +33,7 @@ export class InlineTargetRunner
       return [];
     }
 
-    return new Promise<vscode.CodeLens[]>(async (resolve, reject) => {
+    return new Promise<vscode.CodeLens[]>(async (resolve, _) => {
       const codeLenses: vscode.CodeLens[] = [];
       const targetFile = new target.TargetFile(doc, this.runner);
 

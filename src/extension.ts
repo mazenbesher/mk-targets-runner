@@ -34,8 +34,7 @@ const targetFromGutter =
   };
 
 const includedTargetFromGutter =
-  (context: vscode.ExtensionContext, action: Action) =>
-  async (params: EditorLineNumberContextParams) => {
+  (action: Action) => async (params: EditorLineNumberContextParams) => {
     const activeDoc: vscode.TextDocument | undefined =
       vscode.window.activeTextEditor?.document;
     if (!activeDoc) {
@@ -107,13 +106,13 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.includedTargetFromGutter.run",
-      includedTargetFromGutter(context, Action.Run)
+      includedTargetFromGutter(Action.Run)
     )
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "mk-targets-runner.includedTargetFromGutter.dryrun",
-      includedTargetFromGutter(context, Action.DryRun)
+      includedTargetFromGutter(Action.DryRun)
     )
   );
 
@@ -130,7 +129,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         `mk-targets-runner.runTargetFromQuickPick.${runner.cmd}`,
-        async () => await quickPickAllFiles.show(context, runner)
+        async () => await quickPickAllFiles.show(runner)
       )
     );
 
@@ -146,7 +145,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         `mk-targets-runner.dryRunTarget.${runner.cmd}`,
-        (tgt: Target) => tgt.dryRun(context)
+        (tgt: Target) => tgt.dryRun()
       )
     );
   }

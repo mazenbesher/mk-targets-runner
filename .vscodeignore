@@ -1,13 +1,21 @@
+# explict
+.yarnrc
+CHANGELOG.md
+Makefile
+
+# folders
 .vscode/**
 .vscode-test/**
 src/**
-.gitignore
-.yarnrc
-vsc-extension-quickstart.md
-**/tsconfig.json
-**/.eslintrc.json
-**/*.map
-**/*.ts
+doc/**
 dist/**
 icons/original/**
+sample-projects/**
+scripts/**
 
+# patterns (files anywhere)
+**/tsconfig.json
+**/.eslintrc.json
+**/*.gitignore
+**/*.map
+**/*.ts

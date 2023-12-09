@@ -81,7 +81,7 @@ export class Target {
     this._sendCmdToTerminal(this.cmd);
   }
 
-  dryRun(context: vscode.ExtensionContext): void {
+  dryRun(): void {
     this._sendCmdToTerminal(this.dryRunCmd);
   }
 
@@ -89,7 +89,7 @@ export class Target {
     if (action === Action.Run) {
       this.run(context);
     } else if (action === Action.DryRun) {
-      this.dryRun(context);
+      this.dryRun();
     } else {
       throw new Error(`Unknown action: ${action}`);
     }

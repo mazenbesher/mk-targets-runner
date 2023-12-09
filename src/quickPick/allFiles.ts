@@ -62,10 +62,7 @@ const getItems = async (runner: Runner): Promise<vscode.QuickPickItem[]> => {
   return items;
 };
 
-export const show = async (
-  context: vscode.ExtensionContext,
-  runner: Runner
-) => {
+export const show = async (runner: Runner) => {
   const items: vscode.QuickPickItem[] | undefined = await getItems(
     runner
   ).catch((err) => {
@@ -87,7 +84,7 @@ export const show = async (
   createQuickPickForTargets(
     items,
     (quickPickItemTarget: QuickPickItemTarget) => {
-      quickPickItemTarget.target.dryRun(context);
+      quickPickItemTarget.target.dryRun();
     }
   );
 };
