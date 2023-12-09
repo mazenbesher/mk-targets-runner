@@ -1,5 +1,5 @@
-target-inside-mk:
-	@echo "Target 1"
+target1-inside-mk1:
+	@echo "Mk 1 - Target 1"
 
-target2-inside-mk:
-	@echo "Target 2"
+target2-inside-mk1:
+	@echo "Mk 1 - Target 2"

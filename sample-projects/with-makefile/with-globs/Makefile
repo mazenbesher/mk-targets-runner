@@ -1,22 +1,36 @@
 WHO=world
 
-# should be targets from mk0 and mk1
+# mk0 and mk1
 include *.mk
 
-# should be only mk0 targets
+# mk0
 include mk0.mk
 
-# should be only mk1 targets
+# mk1
 include mk1.mk
 
-# should be targets from mk2 and mk3
+# mk2 and mk3
 include makefiles/*.mk
 
-# should be m4 and mk5 targets
+# m4 and mk5
 include makefiles/subfolder/*.mk
 
-# should be targets from mk2, mk3, mk4 and mk5
+# mk2, mk3, mk4 and mk5
 include makefiles/**/*.mk
 
-# all targets!
+# mk0, mk1, mk2, mk3, mk4 and mk5
 include **/*.mk
+
+### with parent directory
+
+# target1, target2, target3
+include ../Makefile
+
+# target1-inside-mk1, target2-inside-mk1
+include ../sub-makefiles/mk1.mk
+
+# target1-inside-mk1, target2-inside-mk1, target1-inside-mk2
+include ../sub-makefiles/*.mk
+
+# target1-inside-mk1, target2-inside-mk1, target1-inside-mk2, target1-inside-mk3
+include ../sub-makefiles/**/*.mk

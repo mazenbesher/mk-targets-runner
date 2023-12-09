@@ -67,8 +67,9 @@ From current file, with a quickpick menu to select the target from the included 
   - [ ] Tests
   - [ ] Linting
   - [ ] Configurations generation
-- [ ] WIP: Add tests
+- [ ] Add tests
 - [ ] Auto increment version with commit and auto append commit messages to `CHANGELOG.md`
+- [ ] Show some indication that the extension is working (e.g. spinner) while finding targets
 
 # Useful links
 
