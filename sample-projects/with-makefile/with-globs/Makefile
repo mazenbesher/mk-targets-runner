@@ -1,5 +1,9 @@
 WHO=world
 
+main:
+	@echo "main"
+	@echo "Hello ${WHO}"
+
 # mk0 and mk1
 include *.mk
 
@@ -34,3 +38,11 @@ include ../sub-makefiles/*.mk
 
 # target1-inside-mk1, target2-inside-mk1, target1-inside-mk2, target1-inside-mk3
 include ../sub-makefiles/**/*.mk
+
+### absoulte path
+
+# mk0
+include /Users/mazen/Documents/projects/makefile-vscode-ext/mk-targets-runner/sample-projects/with-makefile/with-globs/mk0.mk
+
+# outside workspace
+include /Users/mazen/Documents/projects/docker/docker-compose.mk

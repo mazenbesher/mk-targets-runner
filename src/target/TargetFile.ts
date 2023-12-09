@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import { glob } from "glob";
 
 import * as utils from "../utils";
 import * as config from "../config";
@@ -74,9 +75,8 @@ export class TargetFile {
       String.raw`^${this.runner.includeDirective}\s(.*)$`,
       "gm"
     );
-    let fileContent = this.doc.getText();
     let match;
-    while ((match = includeRegex.exec(fileContent)) !== null) {
+    while ((match = includeRegex.exec(this.doc.getText())) !== null) {
       // get include pattern e.g. 'file.mk', '*.mk', 'dir/*.mk', 'dir/**/*.mk', '../dir/*.mk', '../dir/**/*.mk'
       const includePattern: vscode.GlobPattern = match[1];
 
@@ -87,17 +87,13 @@ export class TargetFile {
         includePattern
       );
 
-      // relative to the workspace directory
-      // e.g. /User/project/dir1 -> dir1
-      const includePatternRelative: vscode.GlobPattern =
-        vscode.workspace.asRelativePath(includePatternResolved);
+      // find all files that match this pattern
+      // Note: not using `vscode.workspace.findFiles` because the file can be outside the workspace
+      const includedFilesPaths: string[] = await glob(includePatternResolved);
 
-      // find all files that match this relative pattern
-      for (const includedFileUri of await vscode.workspace.findFiles(
-        includePatternRelative
-      )) {
+      for (const includedFilePath of includedFilesPaths) {
         const includedDoc: vscode.TextDocument =
-          await vscode.workspace.openTextDocument(includedFileUri);
+          await vscode.workspace.openTextDocument(includedFilePath);
         yield new IncludedTargetFile(
           includedDoc,
           this.runner,
@@ -107,9 +103,9 @@ export class TargetFile {
 
         if (
           recursive &&
-          !previouslyIncludedPaths.includes(includedFileUri.toString())
+          !previouslyIncludedPaths.includes(includedFilePath.toString())
         ) {
-          previouslyIncludedPaths.push(includedFileUri.toString());
+          previouslyIncludedPaths.push(includedFilePath.toString());
           yield* new TargetFile(includedDoc, this.runner).getIncludedFiles({
             recursive,
             previouslyIncludedPaths,
@@ -173,7 +169,6 @@ export class TargetFile {
   async *getIncludedFilesAtLine(
     lineNumber: number
   ): AsyncGenerator<IncludedTargetFile | undefined> {
-    const includedFiles: IncludedTargetFile[] = [];
     for await (const includedTargetFile of this.getIncludedFiles({
       recursive: false,
     })) {

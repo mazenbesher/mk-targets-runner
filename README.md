@@ -41,17 +41,17 @@ From current file, with a quickpick menu to select the target from the included 
 
 <!-- START_CONFIG_TABLE -->
 
-| Property | Description | Type | Default Value |
-| - | - | - | - |
-| `mk-targets-runner.command.make` | The command to run makefiles targets. | `string` | `make -C <dir> -f <fsPath> <name>` |
-| `mk-targets-runner.command.just` | The command to run justfiles targets. | `string` | `just -d <dir> -f <fsPath> <name>` |
-| `mk-targets-runner.dryrun.make` | The command to run makefiles targets in dry-run mode. | `string` | `make -C <dir> -f <fsPath> --dry-run <name>` |
-| `mk-targets-runner.dryrun.just` | The command to run justfiles targets in dry-run mode. | `string` | `just -d <dir> -f <fsPath> --dry-run <name>` |
-| `mk-targets-runner.filePattern.make` | The glob patterns to match makefiles. | `array` | `['Makefile', '*.mk']` |
-| `mk-targets-runner.filePattern.just` | The glob patterns to match justfiles. | `array` | `['justfile', '*.just']` |
-| `mk-targets-runner.excludedFoldersPatterns` | The glob patterns to exclude folders. | `array` | `['**/.git', '**/node_modules']` |
-| `mk-targets-runner.enableInlineTargetRunner` | Enable inline target runner. | `boolean` | `True` |
-| `mk-targets-runner.inlineRunnerLocation` | Where to show the inline target runner. | `string` | `target` |
+| Property                                     | Description                                           | Type      | Default Value                                |
+| -------------------------------------------- | ----------------------------------------------------- | --------- | -------------------------------------------- |
+| `mk-targets-runner.command.make`             | The command to run makefiles targets.                 | `string`  | `make -C <dir> -f <fsPath> <name>`           |
+| `mk-targets-runner.command.just`             | The command to run justfiles targets.                 | `string`  | `just -d <dir> -f <fsPath> <name>`           |
+| `mk-targets-runner.dryrun.make`              | The command to run makefiles targets in dry-run mode. | `string`  | `make -C <dir> -f <fsPath> --dry-run <name>` |
+| `mk-targets-runner.dryrun.just`              | The command to run justfiles targets in dry-run mode. | `string`  | `just -d <dir> -f <fsPath> --dry-run <name>` |
+| `mk-targets-runner.filePattern.make`         | The glob patterns to match makefiles.                 | `array`   | `['Makefile', '*.mk']`                       |
+| `mk-targets-runner.filePattern.just`         | The glob patterns to match justfiles.                 | `array`   | `['justfile', '*.just']`                     |
+| `mk-targets-runner.excludedFoldersPatterns`  | The glob patterns to exclude folders.                 | `array`   | `['**/.git', '**/node_modules']`             |
+| `mk-targets-runner.enableInlineTargetRunner` | Enable inline target runner.                          | `boolean` | `True`                                       |
+| `mk-targets-runner.inlineRunnerLocation`     | Where to show the inline target runner.               | `string`  | `target`                                     |
 
 <!-- END_CONFIG_TABLE -->
 
@@ -78,3 +78,7 @@ From current file, with a quickpick menu to select the target from the included 
   - [Icons for Visual Studio Code](https://github.com/microsoft/vscode-icons)
   - [Codicon icon font](https://microsoft.github.io/vscode-codicons/dist/codicon.html)
 - [Testing Extensions](https://code.visualstudio.com/api/working-with-extensions/testing-extension)
+
+# Notes
+
+- To be able to import `glob` it had to be added `dependencies` in `package.json` and **removed from** `devDependencies` from some reason! (see [this](https://stackoverflow.com/a/76257922/1617883)). Otherwise, the extension would not be able to be activated with the following error: "Activating extension failed due to an error Cannot find module 'glob'". Note that this error does not occur when running the extension in debug mode!
