@@ -18,3 +18,10 @@ clean:
 # generate config documentation
 gen-config-doc:
 	@python3 scripts/config-to-doc.py
+
+# setup pre-commit hooks
+pre-commit:
+	mkdir -p .githooks
+	git config core.hooksPath .githooks
+	touch .githooks/pre-commit
+	chmod +x .githooks/pre-commit

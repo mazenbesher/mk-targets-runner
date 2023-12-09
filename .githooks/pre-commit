@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Update the version in package.json and package-lock.json
+npm version patch --no-git-tag-version
+
+# Check if npm version command succeeded
+if [ $? -ne 0 ]; then
+  echo "npm version failed"
+  exit 1
+fi
+
+# Stage the modified package.json and package-lock.json files
+git add package.json package-lock.json
+
+# Continue with the commit
+exit 0
