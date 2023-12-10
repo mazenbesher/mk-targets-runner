@@ -3,39 +3,38 @@
 
 # Targets Runner
 
-Run targets from Makefiles and [justfiles](https://github.com/casey/just) in VSCode.
-Download from [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=mazenb.mk-targets-runner).
+Run Makefiles and [justfiles](https://github.com/casey/just) directly from your editor.
+Available for download at the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=mazenb.mk-targets-runner).
 
 </div>
 
-# Features
+# Key Features
 
-## Inline runner
+## Inline Runner
 
 ![](./doc/inline-runner.png)
 
-Can be disabled via `mk-targets-runner.enableInlineTargetRunner`.
+Toggle this feature using `mk-targets-runner.enableInlineTargetRunner`.
 
 or from the gutter:
 
 ![](./doc/run-target-from-gutter.png)
 
-## Run targets from quickpick menu
+## Quickpick Menu for Running any Target
 
 ![](./doc/demo.gif)
 
-## Run targets in included file
+## Support for Included Files
 
-From current file, with a quickpick menu to select the target from the included file.
+Run targets targets from included files:
 
 ![](./doc/inline-included.gif)
 
-## Other features
+## Additional Features
 
 - Re-run last target
 - Support for [`justfile`-comments](https://github.com/casey/just#documentation-comments) (shown as description in the picker)
-- Run included files from the correct file.
-  - Example: if variable is defined in a file and then a target is included that uses this variable, the variable is not defined in the included file!
+- Proper execution of included files, ensuring variables defined in one file are recognized in included targets.
 
 # Configurations
 
@@ -59,19 +58,17 @@ From current file, with a quickpick menu to select the target from the included 
 
 - [ ] Timeout for finding targets
 - [ ] Add tasks via the [`TaskProvider`](https://code.visualstudio.com/api/extension-guides/task-provider)
-- [ ] Right now the extension uses the activation event `onLanguage` since the extension should be activated for any targetfile type which is dynmically determined. This is not ideal since it will be activated for any file.
-- Add support for:
-  - [ ] Rakefile
-  - [ ] Python typer
+- [ ] Right now the extension uses the activation event `onLanguage` since the extension should be activated for any targetfile type which is dynmically determined. This is not ideal since it will be activated for any file
+- Extend support to include Rakefile and Python typer
 - Git hooks for:
   - [ ] Tests
   - [ ] Linting
   - [ ] Configurations generation
 - [ ] Add tests
 - [ ] Auto increment version with commit and auto append commit messages to `CHANGELOG.md`
-- [ ] Show some indication that the extension is working (e.g. spinner) while finding targets
+- [ ] Add a visual indication (e.g., spinner) to show the extension is actively searching for targets
 
-# Useful links
+# Helpful Resources
 
 - [Task Provider](https://code.visualstudio.com/api/extension-guides/task-provider)
 - icons
@@ -79,6 +76,6 @@ From current file, with a quickpick menu to select the target from the included 
   - [Codicon icon font](https://microsoft.github.io/vscode-codicons/dist/codicon.html)
 - [Testing Extensions](https://code.visualstudio.com/api/working-with-extensions/testing-extension)
 
-# Notes
+# Developer Notes
 
-- To be able to import `glob` it had to be added `dependencies` in `package.json` and **removed from** `devDependencies` from some reason! (see [this](https://stackoverflow.com/a/76257922/1617883)). Otherwise, the extension would not be able to be activated with the following error: "Activating extension failed due to an error Cannot find module 'glob'". Note that this error does not occur when running the extension in debug mode!
+- To enable `glob` import, it was necessary to **shift** it from `devDependencies` to `dependencies` in `package.json` (see [this discussion](https://stackoverflow.com/a/76257922/1617883)). Without this change, the extension failed to activate with an error "Cannot find module 'glob'", a problem not encountered in debug mode.
