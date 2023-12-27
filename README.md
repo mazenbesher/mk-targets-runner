@@ -67,6 +67,9 @@ Run targets targets from included files:
 - [ ] Add tests
 - [ ] Auto increment version with commit and auto append commit messages to `CHANGELOG.md`
 - [ ] Add a visual indication (e.g., spinner) to show the extension is actively searching for targets
+- [ ] Option to open the included file in a new editor tab
+- [ ] Detect `just` version to determine which include directive to use
+- [ ] Use [offical lexer](https://github.com/casey/just/blob/master/src/lexer.rs) to parse `just` files
 
 # Helpful Resources
 
