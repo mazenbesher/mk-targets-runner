@@ -46,7 +46,7 @@ const Make = new Runner(
   "make",
   "include",
   true,
-  String.raw`^((#\s*(?<comment>[^\n|\\]*)(?!\\$)\n)?)(?<!\\\n) *(?<targetName>[a-zA-Z0-9_-]+):` // https://regex101.com/r/BmPAG0/1
+  String.raw`^((#\s*(?<comment>[^\n|\\]*)(?!\\$)\n)?)(?<!\\\n) *(?<targetName>[a-zA-Z0-9_-]+):\s` // https://regex101.com/r/s10jX1/1
 );
 
 const Just = new Runner(
