@@ -71,14 +71,16 @@ export class TargetFile {
     // if the targetfile has an include statement, then replace the content with the included file (verbatim)
     // `previouslyIncludedPaths` is used to avoid infinite loop if the included file has an include statement to the current file
     const fileDir = path.dirname(this.doc.uri.fsPath);
-    const includeRegex = new RegExp(
-      String.raw`^${this.runner.includeDirective}\s(.*)$`,
-      "gm"
-    );
+    const includeRegex = new RegExp(this.runner.includeRegexpString, "gm");
     let match;
     while ((match = includeRegex.exec(this.doc.getText())) !== null) {
+      // ensure that a path is matched
+      if (!match.groups?.["path"]) {
+        continue;
+      }
+
       // get include pattern e.g. 'file.mk', '*.mk', 'dir/*.mk', 'dir/**/*.mk', '../dir/*.mk', '../dir/**/*.mk'
-      const includePattern: vscode.GlobPattern = match[1];
+      const includePattern: vscode.GlobPattern = match.groups['path'];
 
       // resolve any relative parts
       // e.g. /User/project/dir1/dir2/.. -> /User/project/dir1

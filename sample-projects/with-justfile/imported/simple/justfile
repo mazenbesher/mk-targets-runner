@@ -1,0 +1,4 @@
+import './included.just'
+
+target-in-main:
+	@echo "This target is in the main file"
