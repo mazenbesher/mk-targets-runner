@@ -1,0 +1,158 @@
+{
+  "aliases": {},
+  "assignments": {},
+  "first": "multi-line-comment-with-slash",
+  "recipes": {
+    "confirmable-target": {
+      "attributes": [
+        "confirm"
+      ],
+      "body": [
+        [
+          "@echo \"Confirmable target\""
+        ]
+      ],
+      "dependencies": [],
+      "doc": null,
+      "name": "confirmable-target",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    },
+    "dump-as-json": {
+      "attributes": [],
+      "body": [
+        [
+          "just -f complex.just --dump --dump-format json | jq > complex.json"
+        ]
+      ],
+      "dependencies": [],
+      "doc": null,
+      "name": "dump-as-json",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    },
+    "multi-line-comment": {
+      "attributes": [],
+      "body": [
+        [
+          "@echo \"multi-line-comment\""
+        ]
+      ],
+      "dependencies": [],
+      "doc": "line 2",
+      "name": "multi-line-comment",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    },
+    "multi-line-comment-with-slash": {
+      "attributes": [],
+      "body": [
+        [
+          "@echo \"multi-line-comment-with-slash\""
+        ]
+      ],
+      "dependencies": [],
+      "doc": "multi line comment",
+      "name": "multi-line-comment-with-slash",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    },
+    "slash": {
+      "attributes": [],
+      "body": [
+        [
+          "@echo \"This target has a slashed comment\""
+        ]
+      ],
+      "dependencies": [],
+      "doc": "comment with slash \\",
+      "name": "slash",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    },
+    "slash-and-space": {
+      "attributes": [],
+      "body": [
+        [
+          "@echo \"This target has a slashed comment with space\""
+        ]
+      ],
+      "dependencies": [],
+      "doc": "comment with slash and space \\",
+      "name": "slash-and-space",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    },
+    "space-at-end-of-comment": {
+      "attributes": [],
+      "body": [
+        [
+          "@echo \"This target has a comment with a space at the end \""
+        ]
+      ],
+      "dependencies": [],
+      "doc": "comment with a space at the end",
+      "name": "space-at-end-of-comment",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    },
+    "tricky-target": {
+      "attributes": [],
+      "body": [
+        [
+          "@echo \"This\\"
+        ],
+        [
+          "# target \\"
+        ],
+        [
+          "target: tries to trick the regex!\""
+        ]
+      ],
+      "dependencies": [],
+      "doc": null,
+      "name": "tricky-target",
+      "parameters": [],
+      "priors": 0,
+      "private": false,
+      "quiet": false,
+      "shebang": false
+    }
+  },
+  "settings": {
+    "allow_duplicate_recipes": false,
+    "dotenv_filename": null,
+    "dotenv_load": null,
+    "dotenv_path": null,
+    "export": false,
+    "fallback": false,
+    "ignore_comments": false,
+    "positional_arguments": false,
+    "shell": null,
+    "tempdir": null,
+    "windows_powershell": false,
+    "windows_shell": null
+  },
+  "warnings": []
+}

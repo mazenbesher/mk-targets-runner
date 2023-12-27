@@ -53,7 +53,7 @@ const Just = new Runner(
   "just",
   "!include",
   true,
-  String.raw`^(#(?<comment>[^\n]*)\n)?(?<targetName>[a-zA-Z0-9_-]+):` // TODO
+  String.raw`^(#\s*(?<comment>[^\n]*)\n)? *(?<targetName>[a-zA-Z0-9_-]+):\s` // https://regex101.com/r/3Cx8Aq/1
 );
 
 export const allRunners = [Make, Just];

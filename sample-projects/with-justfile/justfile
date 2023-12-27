@@ -1,2 +1,10 @@
-target-inside-main-justfile:
-	@echo "Target inside main justfile"
+# doc for first target
+target1-inside-main-justfile:
+	@echo "Target 1 inside main justfile"
+
+[confirm]
+target2-inside-main-justfile:
+	@echo "Target 2 inside main justfile"
+
+target3-inside-main-justfile:
+	@echo "Target 3 inside main justfile"
