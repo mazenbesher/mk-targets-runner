@@ -103,12 +103,15 @@ export class Target {
   }
 
   getStartPos(): vscode.Position {
-    return this.comment.length > 0
-      ? this.doc.positionAt(
-          // if there is a comment, then the target line is after the comment
-          this.match.index + "# ".length + this.comment.length + "\n".length
-        )
-      : this.doc.positionAt(this.match.index);
+    if (this.comment.length > 0) {
+      const commentLine: vscode.TextLine = this.getCommentLine();
+      const commandLine: vscode.TextLine = this.doc.lineAt(
+        commentLine.lineNumber + 1
+      );
+      return commandLine.range.start;
+    }
+
+    return this.doc.positionAt(this.match.index);
   }
 
   getLine(): vscode.TextLine {
