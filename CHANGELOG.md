@@ -72,3 +72,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Control inline runner location
+
+## [0.1.15] - 2023-12-27
+
+### Fixed
+
+- Fix #1 
+
+### Added
+
+- Modify logic to detect included files and get start position of a target with a comment
+- Use `impoart` for just include directive
